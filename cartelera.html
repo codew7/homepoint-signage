@@ -11,9 +11,9 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --primary: #e94560;
-      --primary-dark: #c81e45;
-      --bg-dark: #0f0f23;
+      --primary: #50d753;
+      --primary-dark: #3db840;
+      --bg-dark: #000000;
       --bg-card: #1a1a2e;
       --text-primary: #ffffff;
       --text-secondary: #a0a0b8;
@@ -21,6 +21,84 @@
       --overlay-gradient: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
       --transition-speed: 1s;
     }
+
+    /* ========== LOGIN ========== */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 1000;
+    }
+
+    #login-screen.hidden { display: none; }
+
+    .login-box {
+      background: #111;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 3rem 2.5rem;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+
+    .login-box .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.3em;
+      color: #fff;
+    }
+
+    .login-box .logo span { color: var(--primary); }
+
+    .login-box .subtitle {
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 0.8rem;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .login-box input:focus { border-color: var(--primary); }
+
+    .login-error {
+      color: #ff4444;
+      font-size: 0.85rem;
+      margin-bottom: 0.8rem;
+      display: none;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.2s;
+      font-family: inherit;
+    }
+
+    .login-btn:hover { filter: brightness(1.1); }
+    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     html, body {
       width: 100%; height: 100%;
@@ -86,17 +164,10 @@
 
     .slide-image img {
       width: 100%; height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
     }
 
-    /* Overlay degradado sobre imagen */
-    .slide-overlay {
-      position: absolute;
-      inset: 0;
-      background: var(--overlay-gradient);
-      z-index: 1;
-    }
 
     /* Contenido de texto sobre slide */
     .slide-content {
@@ -136,38 +207,71 @@
       letter-spacing: -0.02em;
     }
 
-    /* ========== BARRA DE INFORMACIÓN SUPERIOR ========== */
+    /* ========== RELOJ ESQUINA INFERIOR DERECHA ========== */
     #info-bar {
       position: fixed;
-      top: 0; left: 0; right: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.2vw 2vw;
+      bottom: 1.5vw; right: 2vw;
       z-index: 100;
-      background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
-      pointer-events: none;
-    }
-
-    #logo-area {
-      display: flex;
-      align-items: center;
-      gap: 0.8vw;
-    }
-
-    #logo-area .logo-text {
-      font-size: clamp(1.2rem, 2.5vw, 2.2rem);
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    #logo-area .logo-text span {
-      color: var(--primary);
+      pointer-events: all;
+      text-align: right;
     }
 
     #clock-area {
       text-align: right;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* ========== MENÚ DE PANTALLAS ========== */
+    #screen-menu {
+      position: fixed;
+      bottom: calc(1.5vw + 80px);
+      right: 2vw;
+      background: rgba(10,10,10,0.92);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 0.6rem 0;
+      z-index: 200;
+      min-width: 200px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      display: none;
+    }
+
+    #screen-menu.visible { display: block; }
+
+    #screen-menu .menu-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.35);
+      padding: 0.3rem 1rem 0.6rem;
+    }
+
+    #screen-menu .menu-item {
+      padding: 0.7rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.85);
+    }
+
+    #screen-menu .menu-item:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    #screen-menu .menu-item.current {
+      color: var(--primary);
+    }
+
+    #screen-menu .menu-item .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.6;
     }
 
     #clock {
@@ -175,11 +279,13 @@
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.02em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
     }
 
     #date-display {
       font-size: clamp(0.7rem, 1.2vw, 1.2rem);
       opacity: 0.7;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7);
       text-transform: capitalize;
     }
 
@@ -224,8 +330,8 @@
     /* ========== ESTADO DE CONEXIÓN ========== */
     #connection-status {
       position: fixed;
-      top: 1.5vw;
-      right: 2vw;
+      bottom: 1.5vw;
+      left: 2vw;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -330,11 +436,25 @@
 </head>
 <body>
 
-  <!-- Barra superior: logo + reloj -->
-  <div id="info-bar">
-    <div id="logo-area">
-      <div class="logo-text">Home<span>Point</span></div>
+  <!-- Login -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="logo">Home<span>Point</span></div>
+      <div class="subtitle">Cartelera Digital</div>
+      <input type="email" id="login-email" placeholder="Correo electronico" autofocus>
+      <input type="password" id="login-password" placeholder="Contrasena">
+      <div class="login-error" id="login-error">Correo o contrasena incorrectos</div>
+      <button class="login-btn" id="login-btn">Ingresar</button>
     </div>
+  </div>
+
+  <!-- Menú de pantallas -->
+  <div id="screen-menu">
+    <div class="menu-title">Seleccionar pantalla</div>
+  </div>
+
+  <!-- Reloj esquina inferior derecha -->
+  <div id="info-bar">
     <div id="clock-area">
       <div id="clock">00:00</div>
       <div id="date-display"></div>
@@ -365,6 +485,7 @@
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
@@ -391,7 +512,7 @@
       timer: null,
       progressTimer: null,
       progressStart: 0,
-      screenId: new URLSearchParams(window.location.search).get('screen') || 'default',
+      screenId: new URLSearchParams(window.location.search).get('s') || 'default',
       isOnline: true,
       transitionType: 'fade',      // fade | zoom | slide
       transitionSpeed: 1,           // segundos
@@ -404,22 +525,53 @@
        ========================================================== */
     document.getElementById('screen-id-display').textContent = 'Pantalla: ' + state.screenId;
 
-    // Inicializar Firebase
     firebase.initializeApp(FIREBASE_CONFIG);
+    const auth = firebase.auth();
     const db = firebase.database();
 
-    // Iniciar reloj
+    // Iniciar reloj siempre (visible en login también)
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Escuchar cambios en Firebase
-    listenToFirebase();
+    // Login
+    document.getElementById('login-btn').addEventListener('click', doLogin);
+    document.getElementById('login-password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doLogin();
+    });
 
-    // Detectar conexión
-    monitorConnection();
+    function doLogin() {
+      var email = document.getElementById('login-email').value.trim();
+      var pwd = document.getElementById('login-password').value;
+      var errorEl = document.getElementById('login-error');
+      var btn = document.getElementById('login-btn');
 
-    // Cargar caché si existe
-    loadFromCache();
+      errorEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Ingresando...';
+
+      auth.signInWithEmailAndPassword(email, pwd)
+        .catch(function() {
+          errorEl.style.display = 'block';
+          document.getElementById('login-password').value = '';
+          document.getElementById('login-password').focus();
+        })
+        .finally(function() {
+          btn.disabled = false;
+          btn.textContent = 'Ingresar';
+        });
+    }
+
+    // Observar estado de sesión
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('login-screen').classList.add('hidden');
+        listenToFirebase();
+        monitorConnection();
+        loadFromCache();
+      } else {
+        document.getElementById('login-screen').classList.remove('hidden');
+      }
+    });
 
     /* ==========================================================
        RELOJ Y FECHA
@@ -588,10 +740,6 @@
           imgDiv.appendChild(img);
           el.appendChild(imgDiv);
 
-          // Overlay
-          var overlay = document.createElement('div');
-          overlay.className = 'slide-overlay';
-          el.appendChild(overlay);
 
           // Contenido de texto
           if (slide.title || slide.description || slide.price) {
@@ -639,7 +787,11 @@
        ========================================================== */
     function startSlideshow() {
       stopSlideshow();
-      if (state.slides.length <= 1) return;
+      if (state.slides.length === 0) return;
+      if (state.slides.length === 1) {
+        activateSlide(0);
+        return;
+      }
 
       scheduleNext();
     }
@@ -677,8 +829,8 @@
         el.classList.remove('active', 'prev');
       });
 
-      // Marcar el anterior como prev para la transición
-      if (slides[state.currentIndex]) {
+      // Marcar el anterior como prev para la transición (solo si es distinto al nuevo)
+      if (slides[state.currentIndex] && state.currentIndex !== index) {
         slides[state.currentIndex].classList.add('prev');
       }
 
@@ -784,16 +936,81 @@
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
     document.addEventListener('selectstart', function(e) { e.preventDefault(); });
 
-    // Teclas de depuración (Shift+D para mostrar info)
-    document.addEventListener('keydown', function(e) {
-      if (e.shiftKey && e.key === 'D') {
-        alert('Pantalla: ' + state.screenId +
-              '\nSlides: ' + state.slides.length +
-              '\nActual: ' + (state.currentIndex + 1) +
-              '\nConexión: ' + (state.isOnline ? 'Online' : 'Offline') +
-              '\nÚltima actualización: ' + new Date(state.lastUpdate).toLocaleString());
+    /* ==========================================================
+       PANTALLA COMPLETA
+       ========================================================== */
+    var fullscreenRequested = false;
+
+    function requestFullscreen() {
+      if (fullscreenRequested || document.fullscreenElement) return;
+      fullscreenRequested = true;
+
+      var elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(function() {});
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        elem.mozRequestFullScreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    }
+
+    // Solicitar fullscreen en primera interacción del usuario
+    document.addEventListener('click', requestFullscreen);
+    document.addEventListener('touch', requestFullscreen);
+
+    /* ==========================================================
+       MENÚ DE SELECCIÓN DE PANTALLA
+       ========================================================== */
+    var menuVisible = false;
+
+    document.getElementById('clock-area').addEventListener('click', function() {
+      menuVisible ? closeScreenMenu() : openScreenMenu();
+    });
+
+    document.addEventListener('click', function(e) {
+      if (menuVisible && !e.target.closest('#screen-menu') && !e.target.closest('#clock-area')) {
+        closeScreenMenu();
       }
     });
+
+    function openScreenMenu() {
+      var menu = document.getElementById('screen-menu');
+      // Limpiar items previos (mantener título)
+      var items = menu.querySelectorAll('.menu-item');
+      items.forEach(function(el) { el.remove(); });
+
+      db.ref('screens').once('value', function(snapshot) {
+        var data = snapshot.val();
+        if (!data) return;
+
+        Object.keys(data).sort().forEach(function(screenId) {
+          var item = document.createElement('div');
+          item.className = 'menu-item' + (screenId === state.screenId ? ' current' : '');
+          item.innerHTML = '<span class="dot"></span>' + escapeHtml(screenId);
+          item.addEventListener('click', function() {
+            if (screenId !== state.screenId) {
+              var url = new URL(window.location.href);
+              url.searchParams.set('s', screenId);
+              window.location.href = url.toString();
+            } else {
+              closeScreenMenu();
+            }
+          });
+          menu.appendChild(item);
+        });
+
+        menu.classList.add('visible');
+        menuVisible = true;
+      });
+    }
+
+    function closeScreenMenu() {
+      document.getElementById('screen-menu').classList.remove('visible');
+      menuVisible = false;
+    }
   </script>
 </body>
 </html>

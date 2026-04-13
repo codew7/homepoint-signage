@@ -9,11 +9,11 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --primary: #e94560;
-      --primary-hover: #d6304d;
-      --bg: #0f0f23;
-      --bg-card: #1a1a2e;
-      --bg-input: #16213e;
+      --primary: #50d753;
+      --primary-hover: #3db840;
+      --bg: #000000;
+      --bg-card: #111111;
+      --bg-input: #1a1a1a;
       --border: #2a2a4a;
       --text: #ffffff;
       --text-dim: #8888aa;
@@ -566,8 +566,9 @@
     <div class="login-box">
       <div class="logo">Home<span>Point</span></div>
       <div class="subtitle">Panel de Cartelera Digital</div>
-      <input type="password" id="login-password" placeholder="Contrasena de administrador" autofocus>
-      <div class="login-error" id="login-error">Contrasena incorrecta</div>
+      <input type="email" id="login-email" placeholder="Correo electronico" autofocus>
+      <input type="password" id="login-password" placeholder="Contrasena" style="margin-top:0">
+      <div class="login-error" id="login-error">Correo o contrasena incorrectos</div>
       <button class="btn btn-primary btn-full" id="login-btn">Ingresar</button>
     </div>
   </div>
@@ -647,8 +648,8 @@
               <div class="form-group">
                 <label>Color de fondo</label>
                 <div class="color-input-wrap">
-                  <input type="color" id="slide-bg-color" value="#0f0f23">
-                  <input type="text" id="slide-bg-color-text" value="#0f0f23" placeholder="#0f0f23">
+                  <input type="color" id="slide-bg-color" value="#000000">
+                  <input type="text" id="slide-bg-color-text" value="#000000" placeholder="#000000">
                 </div>
               </div>
               <div class="form-group">
@@ -731,15 +732,15 @@
         <div class="form-group">
           <label>Color primario</label>
           <div class="color-input-wrap">
-            <input type="color" id="config-primary-color" value="#e94560">
-            <input type="text" id="config-primary-color-text" value="#e94560">
+            <input type="color" id="config-primary-color" value="#50d753">
+            <input type="text" id="config-primary-color-text" value="#50d753">
           </div>
         </div>
         <div class="form-group">
           <label>Color de fondo</label>
           <div class="color-input-wrap">
-            <input type="color" id="config-bg-color" value="#0f0f23">
-            <input type="text" id="config-bg-color-text" value="#0f0f23">
+            <input type="color" id="config-bg-color" value="#000000">
+            <input type="text" id="config-bg-color-text" value="#000000">
           </div>
         </div>
       </div>
@@ -831,8 +832,8 @@
         <div class="form-group">
           <label>Color de fondo</label>
           <div class="color-input-wrap">
-            <input type="color" id="edit-bg-color" value="#0f0f23">
-            <input type="text" id="edit-bg-color-text" value="#0f0f23">
+            <input type="color" id="edit-bg-color" value="#000000">
+            <input type="text" id="edit-bg-color-text" value="#000000">
           </div>
         </div>
         <div class="form-group">
@@ -853,6 +854,7 @@
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
@@ -870,15 +872,11 @@
         appId: "1:991071394856:web:02b266f05e24eff682291d"
       };
 
-    // Contraseña admin (SHA-256 hash) - cambiar por la tuya
-    // Default: "homepoint2024" -> hash generado en primera ejecución
-    var ADMIN_PASSWORD_HASH = '';
-    var ADMIN_PASSWORD_PLAIN = 'homepoint2024'; // Cambiar en producción
-
     /* ==========================================================
        INICIALIZACIÓN
        ========================================================== */
     firebase.initializeApp(FIREBASE_CONFIG);
+    var auth = firebase.auth();
     var db = firebase.database();
     var storage = firebase.storage();
 
@@ -886,48 +884,78 @@
     var slides = [];
 
     /* ==========================================================
-       AUTENTICACIÓN
+       AUTENTICACIÓN FIREBASE
        ========================================================== */
+    // Observar estado de sesión
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('admin-panel').classList.add('visible');
+        initAdmin();
+      } else {
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('admin-panel').classList.remove('visible');
+      }
+    });
+
     document.getElementById('login-btn').addEventListener('click', doLogin);
     document.getElementById('login-password').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') doLogin();
     });
 
     function doLogin() {
+      var email = document.getElementById('login-email').value.trim();
       var pwd = document.getElementById('login-password').value;
-      if (pwd === ADMIN_PASSWORD_PLAIN) {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('admin-panel').classList.add('visible');
-        sessionStorage.setItem('signtv_auth', '1');
-        initAdmin();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-        document.getElementById('login-password').value = '';
-        document.getElementById('login-password').focus();
-      }
-    }
+      var errorEl = document.getElementById('login-error');
+      var btn = document.getElementById('login-btn');
 
-    // Auto-login si sesión activa
-    if (sessionStorage.getItem('signtv_auth') === '1') {
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('admin-panel').classList.add('visible');
-      initAdmin();
+      errorEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Ingresando...';
+
+      auth.signInWithEmailAndPassword(email, pwd)
+        .catch(function(err) {
+          errorEl.style.display = 'block';
+          document.getElementById('login-password').value = '';
+          document.getElementById('login-password').focus();
+        })
+        .finally(function() {
+          btn.disabled = false;
+          btn.textContent = 'Ingresar';
+        });
     }
 
     document.getElementById('btn-logout').addEventListener('click', function() {
-      sessionStorage.removeItem('signtv_auth');
-      location.reload();
+      auth.signOut();
     });
 
     /* ==========================================================
        INIT ADMIN
        ========================================================== */
     function initAdmin() {
+      loadScreenList();
       loadSlides();
       loadConfig();
       loadHistory();
       setupEventListeners();
       updatePreview();
+    }
+
+    function loadScreenList() {
+      db.ref('screens').once('value', function(snapshot) {
+        var data = snapshot.val();
+        if (!data) return;
+        var sel = document.getElementById('target-screen');
+        Object.keys(data).forEach(function(screenId) {
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === screenId) return;
+          }
+          var opt = document.createElement('option');
+          opt.value = screenId;
+          opt.textContent = 'Pantalla: ' + screenId;
+          sel.appendChild(opt);
+        });
+      });
     }
 
     /* ==========================================================
@@ -1049,21 +1077,18 @@
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        showToast('La imagen no debe superar 5MB', 'error');
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('La imagen no debe superar 10MB', 'error');
         return;
       }
 
-      // Comprimir y convertir a base64 para almacenamiento
-      compressImage(file, function(dataUrl) {
-        document.getElementById('slide-image-url').value = dataUrl;
-        document.getElementById('preview-img').src = dataUrl;
-        document.getElementById('image-preview').style.display = 'block';
-        showToast('Imagen cargada correctamente');
+      showToast('Comprimiendo imagen...');
+      compressImageToBlob(file, function(blob) {
+        uploadToStorage(blob, file.name);
       });
     }
 
-    function compressImage(file, callback) {
+    function compressImageToBlob(file, callback) {
       var reader = new FileReader();
       reader.onload = function(e) {
         var img = new Image();
@@ -1082,15 +1107,52 @@
 
           canvas.width = width;
           canvas.height = height;
-          var ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
 
           var quality = file.size > 2 * 1024 * 1024 ? 0.7 : 0.85;
-          callback(canvas.toDataURL('image/jpeg', quality));
+          canvas.toBlob(callback, 'image/jpeg', quality);
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
+    }
+
+    function uploadToStorage(blob, originalName) {
+      var ext = originalName.split('.').pop() || 'jpg';
+      var fileName = 'slides/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.jpg';
+      var uploadArea = document.getElementById('upload-area');
+      var ref = storage.ref(fileName);
+      var task = ref.put(blob, { contentType: 'image/jpeg' });
+
+      uploadArea.innerHTML = '<div class="icon">&#8593;</div><div>Subiendo imagen...</div><div class="hint" id="upload-progress">0%</div>';
+
+      task.on('state_changed',
+        function(snap) {
+          var pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+          var el = document.getElementById('upload-progress');
+          if (el) el.textContent = pct + '%';
+        },
+        function(err) {
+          showToast('Error al subir: ' + err.message, 'error');
+          resetUploadArea();
+        },
+        function() {
+          task.snapshot.ref.getDownloadURL().then(function(url) {
+            document.getElementById('slide-image-url').value = url;
+            document.getElementById('preview-img').src = url;
+            document.getElementById('image-preview').style.display = 'block';
+            showToast('Imagen subida correctamente');
+            resetUploadArea();
+          });
+        }
+      );
+    }
+
+    function resetUploadArea() {
+      document.getElementById('upload-area').innerHTML =
+        '<div class="icon">&#128247;</div>' +
+        '<div>Arrastra una imagen o haz clic para seleccionar</div>' +
+        '<div class="hint">JPG, PNG, WebP - Max 10MB</div>';
     }
 
     /* ==========================================================
@@ -1150,8 +1212,8 @@
       document.getElementById('edit-price').value = slide.price || '';
       document.getElementById('edit-duration').value = slide.duration || 8;
       document.getElementById('edit-active').value = slide.active !== false ? 'true' : 'false';
-      document.getElementById('edit-bg-color').value = slide.bgColor || '#0f0f23';
-      document.getElementById('edit-bg-color-text').value = slide.bgColor || '#0f0f23';
+      document.getElementById('edit-bg-color').value = slide.bgColor || '#000000';
+      document.getElementById('edit-bg-color-text').value = slide.bgColor || '#000000';
       document.getElementById('edit-text-color').value = slide.textColor || '#ffffff';
       document.getElementById('edit-text-color-text').value = slide.textColor || '#ffffff';
 
@@ -1413,9 +1475,10 @@
 
       if (slides.length > 0) {
         placeholder.style.display = 'none';
-        // Construir URL con parámetro de pantalla
-        var previewUrl = 'cartelera.html?screen=' + encodeURIComponent(currentScreen);
-        iframe.src = previewUrl;
+        var previewUrl = 'cartelera.html?s=' + encodeURIComponent(currentScreen);
+        // Forzar recarga aunque la URL base sea la misma
+        iframe.src = '';
+        setTimeout(function() { iframe.src = previewUrl; }, 50);
       } else {
         placeholder.style.display = 'flex';
         iframe.src = '';
@@ -1432,8 +1495,8 @@
       document.getElementById('slide-price').value = '';
       document.getElementById('slide-duration').value = '8';
       document.getElementById('slide-image-url').value = '';
-      document.getElementById('slide-bg-color').value = '#0f0f23';
-      document.getElementById('slide-bg-color-text').value = '#0f0f23';
+      document.getElementById('slide-bg-color').value = '#000000';
+      document.getElementById('slide-bg-color-text').value = '#000000';
       document.getElementById('slide-text-color').value = '#ffffff';
       document.getElementById('slide-text-color-text').value = '#ffffff';
       document.getElementById('image-preview').style.display = 'none';

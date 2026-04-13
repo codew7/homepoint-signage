@@ -147,8 +147,11 @@ Ejemplos:
 - `cartelera.html?screen=entrada` → Pantalla de entrada
 - `cartelera.html?screen=ofertas` → Pantalla de ofertas
 
-### Modo Kiosk en Chrome
-Para que la pantalla funcione sin barra de herramientas:
+### Pantalla Completa
+El archivo se pasa automáticamente a pantalla completa al hacer clic en cualquier lugar (después de iniciar sesión). No se requiere acción manual.
+
+**Alternativa: Modo Kiosk en Chrome** (más restrictivo, sin cursor visible)
+Para que la pantalla funcione sin barra de herramientas ni acceso a otras funciones:
 
 **Windows:**
 ```
