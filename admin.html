@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomePoint - Panel Administrativo</title>
+  <style>
+    /* ========== RESET & VARIABLES ========== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #e94560;
+      --primary-hover: #d6304d;
+      --bg: #0f0f23;
+      --bg-card: #1a1a2e;
+      --bg-input: #16213e;
+      --border: #2a2a4a;
+      --text: #ffffff;
+      --text-dim: #8888aa;
+      --accent: #00d4aa;
+      --danger: #ff4444;
+      --warning: #ffaa00;
+      --success: #00cc66;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ========== LOGIN ========== */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    #login-screen.hidden { display: none; }
+
+    .login-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 3rem 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .login-box .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.3em;
+    }
+
+    .login-box .logo span { color: var(--primary); }
+
+    .login-box .subtitle {
+      color: var(--text-dim);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-input);
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .login-box input:focus { border-color: var(--primary); }
+
+    .login-error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    /* ========== BOTONES ========== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: white;
+    }
+
+    .btn-primary { background: var(--primary); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+    .btn-success { background: var(--success); color: #000; }
+    .btn-success:hover { filter: brightness(1.1); }
+
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { filter: brightness(1.1); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+    .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+    .btn-full { width: 100%; }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ========== PANEL ADMIN ========== */
+    #admin-panel { display: none; }
+    #admin-panel.visible { display: block; }
+
+    /* Header */
+    .admin-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .admin-header .logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+
+    .admin-header .logo span { color: var(--primary); }
+
+    .admin-header .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* Layout */
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      min-height: calc(100vh - 60px);
+    }
+
+    .admin-main {
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .admin-sidebar {
+      background: var(--bg-card);
+      border-left: 1px solid var(--border);
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    /* Sección */
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title .badge {
+      background: var(--primary);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    /* ========== FORMULARIO DE SLIDE ========== */
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-input);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--primary);
+    }
+
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .color-input-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .color-input-wrap input[type="color"] {
+      width: 42px; height: 42px;
+      padding: 2px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .color-input-wrap input[type="text"] {
+      flex: 1;
+    }
+
+    /* ========== LISTA DE SLIDES ========== */
+    .slide-list {
+      list-style: none;
+    }
+
+    .slide-item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 0.8rem;
+      cursor: grab;
+      transition: all 0.2s;
+    }
+
+    .slide-item:hover {
+      border-color: var(--primary);
+    }
+
+    .slide-item.dragging {
+      opacity: 0.5;
+      border-color: var(--accent);
+    }
+
+    .slide-thumb {
+      width: 80px; height: 50px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .slide-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    .slide-info { min-width: 0; }
+
+    .slide-info .name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .slide-info .meta {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .slide-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      width: 36px; height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .icon-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Toggle de slide activo */
+    .toggle {
+      position: relative;
+      width: 44px; height: 24px;
+      border-radius: 12px;
+      background: var(--border);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle.active { background: var(--accent); }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: white;
+      transition: transform 0.2s;
+    }
+
+    .toggle.active::after { transform: translateX(20px); }
+
+    /* ========== VISTA PREVIA ========== */
+    .preview-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    .preview-frame iframe {
+      width: 100%; height: 100%;
+      border: none;
+      pointer-events: none;
+    }
+
+    .preview-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    /* ========== PANTALLAS CONECTADAS ========== */
+    .screen-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      background: var(--bg-input);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .screen-item .screen-name {
+      font-weight: 600;
+    }
+
+    .screen-item .screen-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    .screen-item .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .screen-item .dot.offline { background: var(--danger); }
+
+    /* ========== HISTORIAL ========== */
+    .history-item {
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .history-item:last-child { border: none; }
+
+    .history-item .time {
+      color: var(--text-dim);
+      font-size: 0.75rem;
+    }
+
+    /* ========== SELECTOR DE PANTALLA TARGET ========== */
+    .screen-selector {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .screen-tag {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .screen-tag.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* ========== MODAL ========== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 20px;
+    }
+
+    .modal-overlay.visible { display: flex; }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      width: 100%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* ========== NOTIFICACIÓN ========== */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 300;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    .toast.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success { background: var(--success); color: #000; }
+    .toast.error { background: var(--danger); color: white; }
+
+    /* ========== UPLOAD AREA ========== */
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-dim);
+    }
+
+    .upload-area:hover,
+    .upload-area.dragover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .upload-area .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .upload-area .hint { font-size: 0.8rem; margin-top: 0.5rem; }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 900px) {
+      .admin-layout {
+        grid-template-columns: 1fr;
+      }
+      .admin-sidebar {
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .admin-header { padding: 1rem; }
+      .admin-main { padding: 1rem; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .slide-item { grid-template-columns: 60px 1fr auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================== LOGIN ============================== -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="logo">Home<span>Point</span></div>
+      <div class="subtitle">Panel de Cartelera Digital</div>
+      <input type="password" id="login-password" placeholder="Contrasena de administrador" autofocus>
+      <div class="login-error" id="login-error">Contrasena incorrecta</div>
+      <button class="btn btn-primary btn-full" id="login-btn">Ingresar</button>
+    </div>
+  </div>
+
+  <!-- ============================== PANEL ADMIN ============================== -->
+  <div id="admin-panel">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="logo">Home<span>Point</span> Admin</div>
+      <div class="header-actions">
+        <select id="target-screen" class="btn btn-outline btn-sm" style="padding: 8px 12px; font-size: 0.85rem; background: var(--bg-input); color: var(--text); border-radius: 8px;">
+          <option value="default">Pantalla: default</option>
+        </select>
+        <button class="btn btn-outline btn-sm" id="btn-add-screen" title="Agregar pantalla">+ Pantalla</button>
+        <button class="btn btn-outline btn-sm" id="btn-config">Configuracion</button>
+        <button class="btn btn-outline btn-sm" id="btn-history">Historial</button>
+        <button class="btn btn-danger btn-sm" id="btn-logout">Salir</button>
+      </div>
+    </header>
+
+    <div class="admin-layout">
+      <!-- Main content -->
+      <main class="admin-main">
+        <!-- Agregar nuevo slide -->
+        <div class="section">
+          <div class="section-title">Agregar Slide</div>
+          <div class="card">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tipo de Slide</label>
+                <select id="slide-type">
+                  <option value="image">Imagen con texto</option>
+                  <option value="text">Solo texto</option>
+                  <option value="promo">Promocion/Oferta</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Duracion (segundos)</label>
+                <input type="number" id="slide-duration" value="8" min="3" max="120">
+              </div>
+            </div>
+
+            <!-- Imagen -->
+            <div class="form-group" id="image-upload-group">
+              <label>Imagen</label>
+              <div class="upload-area" id="upload-area">
+                <div class="icon">&#128247;</div>
+                <div>Arrastra una imagen o haz clic para seleccionar</div>
+                <div class="hint">JPG, PNG, WebP - Max 5MB</div>
+              </div>
+              <input type="file" id="image-file" accept="image/*" style="display:none">
+              <div style="margin-top:8px">
+                <label style="font-size:0.8rem; text-transform:none; color:var(--text-dim)">O ingresa URL directa:</label>
+                <input type="url" id="slide-image-url" placeholder="https://ejemplo.com/imagen.jpg">
+              </div>
+              <div id="image-preview" style="margin-top:10px; display:none;">
+                <img id="preview-img" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid var(--border);">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Titulo</label>
+              <input type="text" id="slide-title" placeholder="Titulo del slide">
+            </div>
+
+            <div class="form-group">
+              <label>Descripcion</label>
+              <textarea id="slide-description" placeholder="Descripcion o mensaje"></textarea>
+            </div>
+
+            <div class="form-group" id="price-group">
+              <label>Precio / Etiqueta</label>
+              <input type="text" id="slide-price" placeholder="Ej: $299.99 o 30% OFF">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Color de fondo</label>
+                <div class="color-input-wrap">
+                  <input type="color" id="slide-bg-color" value="#0f0f23">
+                  <input type="text" id="slide-bg-color-text" value="#0f0f23" placeholder="#0f0f23">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Color de texto</label>
+                <div class="color-input-wrap">
+                  <input type="color" id="slide-text-color" value="#ffffff">
+                  <input type="text" id="slide-text-color-text" value="#ffffff" placeholder="#ffffff">
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:0.5rem;">
+              <button class="btn btn-primary" id="btn-add-slide">Agregar Slide</button>
+              <button class="btn btn-outline" id="btn-clear-form">Limpiar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de slides -->
+        <div class="section">
+          <div class="section-title">
+            Slides Actuales
+            <span class="badge" id="slide-count">0</span>
+          </div>
+          <ul class="slide-list" id="slide-list"></ul>
+          <div id="empty-slides" style="text-align:center; padding:2rem; color:var(--text-dim);">
+            No hay slides configurados. Agrega el primero arriba.
+          </div>
+        </div>
+      </main>
+
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <!-- Vista previa -->
+        <div class="section">
+          <div class="section-title">Vista Previa</div>
+          <div class="preview-frame">
+            <iframe id="preview-iframe"></iframe>
+            <div class="preview-placeholder" id="preview-placeholder">
+              Sin contenido para previsualizar
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm btn-full" id="btn-refresh-preview">Actualizar vista previa</button>
+        </div>
+
+        <!-- Pantallas conectadas -->
+        <div class="section">
+          <div class="section-title">Pantallas Conectadas</div>
+          <div id="screen-list">
+            <div style="text-align:center; padding:1rem; color:var(--text-dim); font-size:0.85rem;">
+              Cargando pantallas...
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ============================== MODAL: CONFIGURACIÓN ============================== -->
+  <div class="modal-overlay" id="config-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Configuracion Global</h2>
+        <button class="modal-close" onclick="closeModal('config-modal')">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo de transicion</label>
+        <select id="config-transition">
+          <option value="fade">Fade (desvanecer)</option>
+          <option value="zoom">Zoom</option>
+          <option value="slide">Slide (deslizar)</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Velocidad de transicion (seg)</label>
+          <input type="number" id="config-speed" value="1" min="0.3" max="5" step="0.1">
+        </div>
+        <div class="form-group">
+          <label>Duracion por defecto (seg)</label>
+          <input type="number" id="config-duration" value="8" min="3" max="120">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Color primario</label>
+          <div class="color-input-wrap">
+            <input type="color" id="config-primary-color" value="#e94560">
+            <input type="text" id="config-primary-color-text" value="#e94560">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Color de fondo</label>
+          <div class="color-input-wrap">
+            <input type="color" id="config-bg-color" value="#0f0f23">
+            <input type="text" id="config-bg-color-text" value="#0f0f23">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:8px; text-transform:none;">
+            <input type="checkbox" id="config-show-clock" checked> Mostrar reloj
+          </label>
+        </div>
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:8px; text-transform:none;">
+            <input type="checkbox" id="config-show-indicators" checked> Mostrar indicadores
+          </label>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-save-config" style="margin-top:1rem;">Guardar Configuracion</button>
+    </div>
+  </div>
+
+  <!-- ============================== MODAL: HISTORIAL ============================== -->
+  <div class="modal-overlay" id="history-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Historial de Cambios</h2>
+        <button class="modal-close" onclick="closeModal('history-modal')">&times;</button>
+      </div>
+      <div id="history-list">
+        <div style="text-align:center; padding:2rem; color:var(--text-dim);">Sin historial</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== MODAL: EDITAR SLIDE ============================== -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Editar Slide</h2>
+        <button class="modal-close" onclick="closeModal('edit-modal')">&times;</button>
+      </div>
+
+      <input type="hidden" id="edit-slide-index">
+
+      <div class="form-group">
+        <label>Tipo de Slide</label>
+        <select id="edit-type">
+          <option value="image">Imagen con texto</option>
+          <option value="text">Solo texto</option>
+          <option value="promo">Promocion/Oferta</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="edit-image-group">
+        <label>URL de Imagen</label>
+        <input type="url" id="edit-image-url" placeholder="https://ejemplo.com/imagen.jpg">
+      </div>
+
+      <div class="form-group">
+        <label>Titulo</label>
+        <input type="text" id="edit-title">
+      </div>
+
+      <div class="form-group">
+        <label>Descripcion</label>
+        <textarea id="edit-description"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Precio / Etiqueta</label>
+        <input type="text" id="edit-price">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Duracion (seg)</label>
+          <input type="number" id="edit-duration" min="3" max="120">
+        </div>
+        <div class="form-group">
+          <label>Activo</label>
+          <select id="edit-active">
+            <option value="true">Si</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Color de fondo</label>
+          <div class="color-input-wrap">
+            <input type="color" id="edit-bg-color" value="#0f0f23">
+            <input type="text" id="edit-bg-color-text" value="#0f0f23">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Color de texto</label>
+          <div class="color-input-wrap">
+            <input type="color" id="edit-text-color" value="#ffffff">
+            <input type="text" id="edit-text-color-text" value="#ffffff">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-save-edit" style="margin-top:1rem;">Guardar Cambios</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+  <script>
+    /* ==========================================================
+       CONFIGURACIÓN FIREBASE
+       ========================================================== */
+    const firebaseConfig = {
+        apiKey: "AIzaSyAKPOK_6OH8o25e4842kESQ2paWBrpQf8A",
+        authDomain: "homepoint-signage.firebaseapp.com",
+        databaseURL: "https://homepoint-signage-default-rtdb.firebaseio.com",
+        projectId: "homepoint-signage",
+        storageBucket: "homepoint-signage.firebasestorage.app",
+        messagingSenderId: "991071394856",
+        appId: "1:991071394856:web:02b266f05e24eff682291d"
+      };
+
+    // Contraseña admin (SHA-256 hash) - cambiar por la tuya
+    // Default: "homepoint2024" -> hash generado en primera ejecución
+    var ADMIN_PASSWORD_HASH = '';
+    var ADMIN_PASSWORD_PLAIN = 'homepoint2024'; // Cambiar en producción
+
+    /* ==========================================================
+       INICIALIZACIÓN
+       ========================================================== */
+    firebase.initializeApp(FIREBASE_CONFIG);
+    var db = firebase.database();
+    var storage = firebase.storage();
+
+    var currentScreen = 'default';
+    var slides = [];
+
+    /* ==========================================================
+       AUTENTICACIÓN
+       ========================================================== */
+    document.getElementById('login-btn').addEventListener('click', doLogin);
+    document.getElementById('login-password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    function doLogin() {
+      var pwd = document.getElementById('login-password').value;
+      if (pwd === ADMIN_PASSWORD_PLAIN) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('admin-panel').classList.add('visible');
+        sessionStorage.setItem('signtv_auth', '1');
+        initAdmin();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-password').focus();
+      }
+    }
+
+    // Auto-login si sesión activa
+    if (sessionStorage.getItem('signtv_auth') === '1') {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('admin-panel').classList.add('visible');
+      initAdmin();
+    }
+
+    document.getElementById('btn-logout').addEventListener('click', function() {
+      sessionStorage.removeItem('signtv_auth');
+      location.reload();
+    });
+
+    /* ==========================================================
+       INIT ADMIN
+       ========================================================== */
+    function initAdmin() {
+      loadSlides();
+      loadScreenStatus();
+      loadConfig();
+      loadHistory();
+      setupEventListeners();
+      updatePreview();
+    }
+
+    /* ==========================================================
+       EVENT LISTENERS
+       ========================================================== */
+    function setupEventListeners() {
+      // Selector de pantalla
+      document.getElementById('target-screen').addEventListener('change', function() {
+        currentScreen = this.value;
+        loadSlides();
+        loadConfig();
+        updatePreview();
+      });
+
+      // Agregar pantalla
+      document.getElementById('btn-add-screen').addEventListener('click', function() {
+        var name = prompt('Nombre/ID de la nueva pantalla:');
+        if (name && name.trim()) {
+          name = name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+          var sel = document.getElementById('target-screen');
+          // Verificar duplicado
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === name) {
+              showToast('Esa pantalla ya existe', 'error');
+              return;
+            }
+          }
+          var opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = 'Pantalla: ' + name;
+          sel.appendChild(opt);
+          sel.value = name;
+          currentScreen = name;
+
+          // Crear entrada en Firebase
+          db.ref('screens/' + name).set({ content: { slides: [] }, config: {} });
+          loadSlides();
+          showToast('Pantalla "' + name + '" creada');
+        }
+      });
+
+      // Agregar slide
+      document.getElementById('btn-add-slide').addEventListener('click', addSlide);
+
+      // Limpiar formulario
+      document.getElementById('btn-clear-form').addEventListener('click', clearForm);
+
+      // Upload de imagen
+      var uploadArea = document.getElementById('upload-area');
+      var fileInput = document.getElementById('image-file');
+
+      uploadArea.addEventListener('click', function() { fileInput.click(); });
+
+      uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+
+      uploadArea.addEventListener('dragleave', function() {
+        uploadArea.classList.remove('dragover');
+      });
+
+      uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleImageFile(e.dataTransfer.files[0]);
+      });
+
+      fileInput.addEventListener('change', function() {
+        if (this.files.length) handleImageFile(this.files[0]);
+      });
+
+      // Tipo de slide: mostrar/ocultar campos
+      document.getElementById('slide-type').addEventListener('change', function() {
+        var isText = this.value === 'text';
+        document.getElementById('image-upload-group').style.display = isText ? 'none' : 'block';
+      });
+
+      // Sincronizar color pickers
+      syncColorInputs('slide-bg-color', 'slide-bg-color-text');
+      syncColorInputs('slide-text-color', 'slide-text-color-text');
+      syncColorInputs('config-primary-color', 'config-primary-color-text');
+      syncColorInputs('config-bg-color', 'config-bg-color-text');
+      syncColorInputs('edit-bg-color', 'edit-bg-color-text');
+      syncColorInputs('edit-text-color', 'edit-text-color-text');
+
+      // Modales
+      document.getElementById('btn-config').addEventListener('click', function() {
+        openModal('config-modal');
+      });
+
+      document.getElementById('btn-history').addEventListener('click', function() {
+        openModal('history-modal');
+      });
+
+      // Guardar config
+      document.getElementById('btn-save-config').addEventListener('click', saveConfig);
+
+      // Guardar edición
+      document.getElementById('btn-save-edit').addEventListener('click', saveSlideEdit);
+
+      // Vista previa
+      document.getElementById('btn-refresh-preview').addEventListener('click', updatePreview);
+
+      // Cerrar modales con clic fuera
+      document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+        overlay.addEventListener('click', function(e) {
+          if (e.target === overlay) overlay.classList.remove('visible');
+        });
+      });
+    }
+
+    /* ==========================================================
+       GESTIÓN DE IMÁGENES
+       ========================================================== */
+    function handleImageFile(file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Solo se permiten imagenes', 'error');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('La imagen no debe superar 5MB', 'error');
+        return;
+      }
+
+      // Comprimir y convertir a base64 para almacenamiento
+      compressImage(file, function(dataUrl) {
+        document.getElementById('slide-image-url').value = dataUrl;
+        document.getElementById('preview-img').src = dataUrl;
+        document.getElementById('image-preview').style.display = 'block';
+        showToast('Imagen cargada correctamente');
+      });
+    }
+
+    function compressImage(file, callback) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var maxWidth = 1920;
+          var maxHeight = 1080;
+          var width = img.width;
+          var height = img.height;
+
+          if (width > maxWidth || height > maxHeight) {
+            var ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          var quality = file.size > 2 * 1024 * 1024 ? 0.7 : 0.85;
+          callback(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* ==========================================================
+       CRUD DE SLIDES
+       ========================================================== */
+    function addSlide() {
+      var type = document.getElementById('slide-type').value;
+      var title = document.getElementById('slide-title').value.trim();
+      var description = document.getElementById('slide-description').value.trim();
+      var price = document.getElementById('slide-price').value.trim();
+      var duration = parseInt(document.getElementById('slide-duration').value) || 8;
+      var imageUrl = document.getElementById('slide-image-url').value.trim();
+      var bgColor = document.getElementById('slide-bg-color-text').value;
+      var textColor = document.getElementById('slide-text-color-text').value;
+
+      if (!title && !imageUrl) {
+        showToast('Agrega al menos un titulo o imagen', 'error');
+        return;
+      }
+
+      var slide = {
+        type: type,
+        title: title,
+        description: description,
+        price: price,
+        duration: duration,
+        imageUrl: imageUrl,
+        bgColor: bgColor,
+        textColor: textColor,
+        active: true,
+        createdAt: Date.now()
+      };
+
+      slides.push(slide);
+      saveSlides();
+      clearForm();
+      showToast('Slide agregado correctamente');
+      addHistoryEntry('Slide agregado: ' + (title || 'Sin titulo'));
+    }
+
+    function deleteSlide(index) {
+      if (!confirm('Eliminar este slide?')) return;
+      var title = slides[index].title || 'Sin titulo';
+      slides.splice(index, 1);
+      saveSlides();
+      showToast('Slide eliminado');
+      addHistoryEntry('Slide eliminado: ' + title);
+    }
+
+    function editSlide(index) {
+      var slide = slides[index];
+      document.getElementById('edit-slide-index').value = index;
+      document.getElementById('edit-type').value = slide.type || 'image';
+      document.getElementById('edit-image-url').value = slide.imageUrl || '';
+      document.getElementById('edit-title').value = slide.title || '';
+      document.getElementById('edit-description').value = slide.description || '';
+      document.getElementById('edit-price').value = slide.price || '';
+      document.getElementById('edit-duration').value = slide.duration || 8;
+      document.getElementById('edit-active').value = slide.active !== false ? 'true' : 'false';
+      document.getElementById('edit-bg-color').value = slide.bgColor || '#0f0f23';
+      document.getElementById('edit-bg-color-text').value = slide.bgColor || '#0f0f23';
+      document.getElementById('edit-text-color').value = slide.textColor || '#ffffff';
+      document.getElementById('edit-text-color-text').value = slide.textColor || '#ffffff';
+
+      var imageGroup = document.getElementById('edit-image-group');
+      imageGroup.style.display = slide.type === 'text' ? 'none' : 'block';
+
+      document.getElementById('edit-type').addEventListener('change', function() {
+        imageGroup.style.display = this.value === 'text' ? 'none' : 'block';
+      });
+
+      openModal('edit-modal');
+    }
+
+    function saveSlideEdit() {
+      var index = parseInt(document.getElementById('edit-slide-index').value);
+
+      slides[index].type = document.getElementById('edit-type').value;
+      slides[index].imageUrl = document.getElementById('edit-image-url').value.trim();
+      slides[index].title = document.getElementById('edit-title').value.trim();
+      slides[index].description = document.getElementById('edit-description').value.trim();
+      slides[index].price = document.getElementById('edit-price').value.trim();
+      slides[index].duration = parseInt(document.getElementById('edit-duration').value) || 8;
+      slides[index].active = document.getElementById('edit-active').value === 'true';
+      slides[index].bgColor = document.getElementById('edit-bg-color-text').value;
+      slides[index].textColor = document.getElementById('edit-text-color-text').value;
+
+      saveSlides();
+      closeModal('edit-modal');
+      showToast('Slide actualizado');
+      addHistoryEntry('Slide editado: ' + (slides[index].title || 'Sin titulo'));
+    }
+
+    function moveSlide(index, direction) {
+      var newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= slides.length) return;
+      var temp = slides[index];
+      slides[index] = slides[newIndex];
+      slides[newIndex] = temp;
+      saveSlides();
+    }
+
+    function toggleSlide(index) {
+      slides[index].active = !slides[index].active;
+      saveSlides();
+      var status = slides[index].active ? 'activado' : 'desactivado';
+      showToast('Slide ' + status);
+    }
+
+    /* ==========================================================
+       FIREBASE: GUARDAR Y CARGAR
+       ========================================================== */
+    function saveSlides() {
+      var data = {
+        slides: slides,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      };
+
+      db.ref('screens/' + currentScreen + '/content').set(data)
+        .then(function() {
+          renderSlideList();
+          updatePreview();
+        })
+        .catch(function(err) {
+          showToast('Error al guardar: ' + err.message, 'error');
+        });
+    }
+
+    function loadSlides() {
+      db.ref('screens/' + currentScreen + '/content').on('value', function(snapshot) {
+        var data = snapshot.val();
+        if (data && data.slides) {
+          slides = Array.isArray(data.slides) ? data.slides : Object.values(data.slides);
+        } else {
+          slides = [];
+        }
+        renderSlideList();
+      });
+    }
+
+    function loadConfig() {
+      db.ref('screens/' + currentScreen + '/config').once('value', function(snapshot) {
+        var config = snapshot.val();
+        if (config) {
+          if (config.transitionType) document.getElementById('config-transition').value = config.transitionType;
+          if (config.transitionSpeed) document.getElementById('config-speed').value = config.transitionSpeed;
+          if (config.defaultDuration) document.getElementById('config-duration').value = config.defaultDuration;
+          if (config.primaryColor) {
+            document.getElementById('config-primary-color').value = config.primaryColor;
+            document.getElementById('config-primary-color-text').value = config.primaryColor;
+          }
+          if (config.bgColor) {
+            document.getElementById('config-bg-color').value = config.bgColor;
+            document.getElementById('config-bg-color-text').value = config.bgColor;
+          }
+          document.getElementById('config-show-clock').checked = config.showClock !== false;
+          document.getElementById('config-show-indicators').checked = config.showIndicators !== false;
+        }
+      });
+    }
+
+    function saveConfig() {
+      var config = {
+        transitionType: document.getElementById('config-transition').value,
+        transitionSpeed: parseFloat(document.getElementById('config-speed').value) || 1,
+        defaultDuration: parseInt(document.getElementById('config-duration').value) || 8,
+        primaryColor: document.getElementById('config-primary-color-text').value,
+        bgColor: document.getElementById('config-bg-color-text').value,
+        showClock: document.getElementById('config-show-clock').checked,
+        showIndicators: document.getElementById('config-show-indicators').checked
+      };
+
+      db.ref('screens/' + currentScreen + '/config').set(config)
+        .then(function() {
+          showToast('Configuracion guardada');
+          closeModal('config-modal');
+          addHistoryEntry('Configuracion actualizada');
+        })
+        .catch(function(err) {
+          showToast('Error: ' + err.message, 'error');
+        });
+    }
+
+    /* ==========================================================
+       PANTALLAS CONECTADAS
+       ========================================================== */
+    function loadScreenStatus() {
+      db.ref('screenStatus').on('value', function(snapshot) {
+        var data = snapshot.val();
+        var container = document.getElementById('screen-list');
+        var sel = document.getElementById('target-screen');
+
+        if (!data) {
+          container.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-dim); font-size:0.85rem;">No hay pantallas conectadas</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+        var now = Date.now();
+
+        Object.keys(data).forEach(function(screenId) {
+          var screen = data[screenId];
+          var isOnline = screen.lastSeen && (now - screen.lastSeen < 60000);
+          var lastSeen = screen.lastSeen ? new Date(screen.lastSeen).toLocaleTimeString('es-ES') : 'Nunca';
+
+          var el = document.createElement('div');
+          el.className = 'screen-item';
+          el.innerHTML =
+            '<span class="screen-name">' + escapeHtml(screenId) + '</span>' +
+            '<span class="screen-status">' +
+              '<span class="dot ' + (isOnline ? '' : 'offline') + '"></span>' +
+              (isOnline ? 'Online' : 'Offline - ' + lastSeen) +
+            '</span>';
+          container.appendChild(el);
+
+          // Agregar al selector si no existe
+          var exists = false;
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === screenId) { exists = true; break; }
+          }
+          if (!exists) {
+            var opt = document.createElement('option');
+            opt.value = screenId;
+            opt.textContent = 'Pantalla: ' + screenId;
+            sel.appendChild(opt);
+          }
+        });
+      });
+    }
+
+    /* ==========================================================
+       HISTORIAL DE CAMBIOS
+       ========================================================== */
+    function addHistoryEntry(message) {
+      var entry = {
+        message: message,
+        screen: currentScreen,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+
+      db.ref('history').push(entry);
+    }
+
+    function loadHistory() {
+      db.ref('history').orderByChild('timestamp').limitToLast(50).on('value', function(snapshot) {
+        var container = document.getElementById('history-list');
+        var data = snapshot.val();
+
+        if (!data) {
+          container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-dim);">Sin historial</div>';
+          return;
+        }
+
+        var entries = Object.values(data).sort(function(a, b) {
+          return (b.timestamp || 0) - (a.timestamp || 0);
+        });
+
+        container.innerHTML = '';
+        entries.forEach(function(entry) {
+          var el = document.createElement('div');
+          el.className = 'history-item';
+          var time = entry.timestamp ? new Date(entry.timestamp).toLocaleString('es-ES') : '';
+          el.innerHTML =
+            '<div>' + escapeHtml(entry.message) + '</div>' +
+            '<div class="time">' + time + ' - Pantalla: ' + escapeHtml(entry.screen || 'default') + '</div>';
+          container.appendChild(el);
+        });
+      });
+    }
+
+    /* ==========================================================
+       RENDERIZADO DE LISTA DE SLIDES
+       ========================================================== */
+    function renderSlideList() {
+      var list = document.getElementById('slide-list');
+      var empty = document.getElementById('empty-slides');
+      var countBadge = document.getElementById('slide-count');
+
+      countBadge.textContent = slides.length;
+
+      if (slides.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      list.innerHTML = '';
+
+      slides.forEach(function(slide, index) {
+        var li = document.createElement('li');
+        li.className = 'slide-item';
+        li.draggable = true;
+        li.dataset.index = index;
+
+        // Thumbnail
+        var thumb = document.createElement('div');
+        thumb.className = 'slide-thumb';
+        if (slide.imageUrl && !slide.imageUrl.startsWith('data:')) {
+          thumb.innerHTML = '<img src="' + escapeHtml(slide.imageUrl) + '" loading="lazy">';
+        } else if (slide.imageUrl && slide.imageUrl.startsWith('data:')) {
+          thumb.innerHTML = '<img src="' + slide.imageUrl + '" loading="lazy">';
+        } else {
+          thumb.style.background = slide.bgColor || 'var(--bg-card)';
+          thumb.textContent = slide.type === 'text' ? 'TXT' : 'IMG';
+        }
+
+        // Info
+        var info = document.createElement('div');
+        info.className = 'slide-info';
+        info.innerHTML =
+          '<div class="name">' + escapeHtml(slide.title || 'Sin titulo') + '</div>' +
+          '<div class="meta">' +
+            slide.type + ' | ' + slide.duration + 's | ' +
+            (slide.active !== false ? '<span style="color:var(--accent)">Activo</span>' : '<span style="color:var(--danger)">Inactivo</span>') +
+          '</div>';
+
+        // Actions
+        var actions = document.createElement('div');
+        actions.className = 'slide-actions';
+        actions.innerHTML =
+          '<button class="icon-btn" onclick="moveSlide(' + index + ', -1)" title="Subir">&uarr;</button>' +
+          '<button class="icon-btn" onclick="moveSlide(' + index + ', 1)" title="Bajar">&darr;</button>' +
+          '<button class="icon-btn" onclick="toggleSlide(' + index + ')" title="Activar/Desactivar">' + (slide.active !== false ? '&#9899;' : '&#9898;') + '</button>' +
+          '<button class="icon-btn" onclick="editSlide(' + index + ')" title="Editar">&#9998;</button>' +
+          '<button class="icon-btn danger" onclick="deleteSlide(' + index + ')" title="Eliminar">&#10005;</button>';
+
+        li.appendChild(thumb);
+        li.appendChild(info);
+        li.appendChild(actions);
+
+        // Drag & drop
+        li.addEventListener('dragstart', function(e) {
+          e.dataTransfer.setData('text/plain', index);
+          this.classList.add('dragging');
+        });
+
+        li.addEventListener('dragend', function() {
+          this.classList.remove('dragging');
+        });
+
+        li.addEventListener('dragover', function(e) {
+          e.preventDefault();
+        });
+
+        li.addEventListener('drop', function(e) {
+          e.preventDefault();
+          var fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          var toIndex = parseInt(this.dataset.index);
+          if (fromIndex !== toIndex) {
+            var item = slides.splice(fromIndex, 1)[0];
+            slides.splice(toIndex, 0, item);
+            saveSlides();
+          }
+        });
+
+        list.appendChild(li);
+      });
+    }
+
+    /* ==========================================================
+       VISTA PREVIA
+       ========================================================== */
+    function updatePreview() {
+      var iframe = document.getElementById('preview-iframe');
+      var placeholder = document.getElementById('preview-placeholder');
+
+      if (slides.length > 0) {
+        placeholder.style.display = 'none';
+        // Construir URL con parámetro de pantalla
+        var previewUrl = 'cartelera.html?screen=' + encodeURIComponent(currentScreen);
+        iframe.src = previewUrl;
+      } else {
+        placeholder.style.display = 'flex';
+        iframe.src = '';
+      }
+    }
+
+    /* ==========================================================
+       UTILIDADES
+       ========================================================== */
+    function clearForm() {
+      document.getElementById('slide-type').value = 'image';
+      document.getElementById('slide-title').value = '';
+      document.getElementById('slide-description').value = '';
+      document.getElementById('slide-price').value = '';
+      document.getElementById('slide-duration').value = '8';
+      document.getElementById('slide-image-url').value = '';
+      document.getElementById('slide-bg-color').value = '#0f0f23';
+      document.getElementById('slide-bg-color-text').value = '#0f0f23';
+      document.getElementById('slide-text-color').value = '#ffffff';
+      document.getElementById('slide-text-color-text').value = '#ffffff';
+      document.getElementById('image-preview').style.display = 'none';
+      document.getElementById('image-upload-group').style.display = 'block';
+      document.getElementById('image-file').value = '';
+    }
+
+    function escapeHtml(text) {
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showToast(message, type) {
+      var toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast ' + (type || 'success');
+      requestAnimationFrame(function() {
+        toast.classList.add('visible');
+      });
+      setTimeout(function() {
+        toast.classList.remove('visible');
+      }, 3000);
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('visible');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('visible');
+    }
+
+    function syncColorInputs(colorId, textId) {
+      var colorInput = document.getElementById(colorId);
+      var textInput = document.getElementById(textId);
+
+      colorInput.addEventListener('input', function() {
+        textInput.value = this.value;
+      });
+
+      textInput.addEventListener('input', function() {
+        if (/^#[0-9a-fA-F]{6}$/.test(this.value)) {
+          colorInput.value = this.value;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

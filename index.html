@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>HomePoint - Cartelera Digital</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    /* ========== RESET & BASE ========== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #e94560;
+      --primary-dark: #c81e45;
+      --bg-dark: #0f0f23;
+      --bg-card: #1a1a2e;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b8;
+      --accent: #00d4aa;
+      --overlay-gradient: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+      --transition-speed: 1s;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      cursor: none;
+    }
+
+    /* ========== REPRODUCTOR PRINCIPAL ========== */
+    #player {
+      position: relative;
+      width: 100%; height: 100%;
+      overflow: hidden;
+    }
+
+    /* ========== SLIDES ========== */
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity var(--transition-speed) ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: opacity, transform;
+    }
+
+    .slide.active {
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .slide.prev {
+      opacity: 0;
+      z-index: 1;
+    }
+
+    /* Transición: Zoom */
+    .transition-zoom .slide {
+      transition: opacity var(--transition-speed) ease-in-out, transform var(--transition-speed) ease-in-out;
+      transform: scale(1.05);
+    }
+    .transition-zoom .slide.active { transform: scale(1); }
+
+    /* Transición: Slide horizontal */
+    .transition-slide .slide {
+      transition: opacity var(--transition-speed) ease-in-out, transform var(--transition-speed) ease-in-out;
+      transform: translateX(100%);
+    }
+    .transition-slide .slide.active { transform: translateX(0); }
+    .transition-slide .slide.prev { transform: translateX(-100%); }
+
+    /* Imagen de slide */
+    .slide-image {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .slide-image img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Overlay degradado sobre imagen */
+    .slide-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--overlay-gradient);
+      z-index: 1;
+    }
+
+    /* Contenido de texto sobre slide */
+    .slide-content {
+      position: absolute;
+      bottom: 0;
+      left: 0; right: 0;
+      padding: 3vw 4vw;
+      z-index: 2;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+    }
+
+    .slide-title {
+      font-size: clamp(2rem, 5vw, 5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 0.3em;
+      letter-spacing: -0.02em;
+    }
+
+    .slide-description {
+      font-size: clamp(1rem, 2.5vw, 2.5rem);
+      font-weight: 400;
+      opacity: 0.9;
+      max-width: 70%;
+      line-height: 1.3;
+    }
+
+    .slide-price {
+      display: inline-block;
+      margin-top: 0.5em;
+      padding: 0.3em 0.8em;
+      background: var(--primary);
+      color: white;
+      font-size: clamp(1.5rem, 3.5vw, 4rem);
+      font-weight: 900;
+      border-radius: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    /* ========== BARRA DE INFORMACIÓN SUPERIOR ========== */
+    #info-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2vw 2vw;
+      z-index: 100;
+      background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    #logo-area {
+      display: flex;
+      align-items: center;
+      gap: 0.8vw;
+    }
+
+    #logo-area .logo-text {
+      font-size: clamp(1.2rem, 2.5vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    #logo-area .logo-text span {
+      color: var(--primary);
+    }
+
+    #clock-area {
+      text-align: right;
+    }
+
+    #clock {
+      font-size: clamp(1.5rem, 3vw, 3rem);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    #date-display {
+      font-size: clamp(0.7rem, 1.2vw, 1.2rem);
+      opacity: 0.7;
+      text-transform: capitalize;
+    }
+
+    /* ========== BARRA DE PROGRESO ========== */
+    #progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: var(--primary);
+      z-index: 100;
+      transition: width linear;
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* ========== INDICADORES DE SLIDE ========== */
+    #slide-indicators {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 100;
+    }
+
+    .indicator {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255,255,255,0.5);
+    }
+
+    .indicator.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      transform: scale(1.3);
+      box-shadow: 0 0 12px var(--primary);
+    }
+
+    /* ========== ESTADO DE CONEXIÓN ========== */
+    #connection-status {
+      position: fixed;
+      top: 1.5vw;
+      right: 2vw;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: clamp(0.6rem, 1vw, 0.9rem);
+      opacity: 0.6;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.offline {
+      background: #ff4444;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* ========== PANTALLA SIN CONTENIDO ========== */
+    #no-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      background: var(--bg-dark);
+    }
+
+    #no-content.hidden { display: none; }
+
+    #no-content .nc-logo {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 800;
+      margin-bottom: 0.5em;
+    }
+
+    #no-content .nc-logo span { color: var(--primary); }
+
+    #no-content .nc-message {
+      font-size: clamp(1rem, 2vw, 1.5rem);
+      color: var(--text-secondary);
+      animation: blink 2s infinite;
+    }
+
+    #no-content .nc-id {
+      margin-top: 1em;
+      font-size: clamp(0.7rem, 1vw, 1rem);
+      color: var(--text-secondary);
+      opacity: 0.5;
+      font-family: monospace;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ========== SLIDE TIPO TEXTO (sin imagen) ========== */
+    .slide-text-only {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 5vw;
+      background: var(--bg-dark);
+      width: 100%; height: 100%;
+    }
+
+    .slide-text-only .slide-title {
+      font-size: clamp(2.5rem, 6vw, 7rem);
+      margin-bottom: 0.3em;
+    }
+
+    .slide-text-only .slide-description {
+      max-width: 80%;
+      font-size: clamp(1.2rem, 3vw, 3rem);
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+      .slide-content { padding: 5vw; }
+      .slide-description { max-width: 100%; }
+      #slide-indicators { bottom: 10px; gap: 6px; }
+      .indicator { width: 8px; height: 8px; }
+    }
+
+    @media (max-width: 480px) {
+      #info-bar { padding: 3vw; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra superior: logo + reloj -->
+  <div id="info-bar">
+    <div id="logo-area">
+      <div class="logo-text">Home<span>Point</span></div>
+    </div>
+    <div id="clock-area">
+      <div id="clock">00:00</div>
+      <div id="date-display"></div>
+    </div>
+  </div>
+
+  <!-- Estado de conexión -->
+  <div id="connection-status">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">Conectado</span>
+  </div>
+
+  <!-- Reproductor principal -->
+  <div id="player">
+    <!-- Pantalla sin contenido -->
+    <div id="no-content">
+      <div class="nc-logo">Home<span>Point</span></div>
+      <div class="nc-message">Esperando contenido...</div>
+      <div class="nc-id" id="screen-id-display"></div>
+    </div>
+  </div>
+
+  <!-- Indicadores de slide -->
+  <div id="slide-indicators"></div>
+
+  <!-- Barra de progreso -->
+  <div id="progress-bar"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    /* ==========================================================
+       CONFIGURACIÓN FIREBASE
+       Reemplaza estos valores con los de tu proyecto Firebase
+       ========================================================== */
+    const firebaseConfig = {
+        apiKey: "AIzaSyAKPOK_6OH8o25e4842kESQ2paWBrpQf8A",
+        authDomain: "homepoint-signage.firebaseapp.com",
+        databaseURL: "https://homepoint-signage-default-rtdb.firebaseio.com",
+        projectId: "homepoint-signage",
+        storageBucket: "homepoint-signage.firebasestorage.app",
+        messagingSenderId: "991071394856",
+        appId: "1:991071394856:web:02b266f05e24eff682291d"
+      };
+
+    /* ==========================================================
+       ESTADO DE LA APLICACIÓN
+       ========================================================== */
+    const state = {
+      slides: [],
+      currentIndex: 0,
+      timer: null,
+      progressTimer: null,
+      progressStart: 0,
+      screenId: new URLSearchParams(window.location.search).get('screen') || 'default',
+      isOnline: true,
+      transitionType: 'fade',      // fade | zoom | slide
+      transitionSpeed: 1,           // segundos
+      defaultDuration: 8,           // segundos por slide
+      lastUpdate: 0
+    };
+
+    /* ==========================================================
+       INICIALIZACIÓN
+       ========================================================== */
+    document.getElementById('screen-id-display').textContent = 'Pantalla: ' + state.screenId;
+
+    // Inicializar Firebase
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const db = firebase.database();
+
+    // Iniciar reloj
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Escuchar cambios en Firebase
+    listenToFirebase();
+
+    // Detectar conexión
+    monitorConnection();
+
+    // Cargar caché si existe
+    loadFromCache();
+
+    /* ==========================================================
+       RELOJ Y FECHA
+       ========================================================== */
+    function updateClock() {
+      var now = new Date();
+      var hours = String(now.getHours()).padStart(2, '0');
+      var minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('clock').textContent = hours + ':' + minutes;
+
+      var options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('date-display').textContent = now.toLocaleDateString('es-ES', options);
+    }
+
+    /* ==========================================================
+       FIREBASE LISTENERS
+       ========================================================== */
+    function listenToFirebase() {
+      // Escuchar contenido global
+      var contentRef = db.ref('screens/' + state.screenId + '/content');
+
+      contentRef.on('value', function(snapshot) {
+        var data = snapshot.val();
+        if (data) {
+          handleContentUpdate(data);
+        }
+      }, function(error) {
+        console.error('Error Firebase:', error);
+      });
+
+      // Escuchar configuración global
+      var configRef = db.ref('screens/' + state.screenId + '/config');
+
+      configRef.on('value', function(snapshot) {
+        var config = snapshot.val();
+        if (config) {
+          applyConfig(config);
+        }
+      });
+
+      // Escuchar contenido compartido (para todas las pantallas)
+      var sharedRef = db.ref('shared/content');
+
+      sharedRef.on('value', function(snapshot) {
+        var data = snapshot.val();
+        if (data && state.slides.length === 0) {
+          handleContentUpdate(data);
+        }
+      });
+
+      // Reportar estado de pantalla
+      reportScreenStatus();
+      setInterval(reportScreenStatus, 30000); // cada 30s
+    }
+
+    /* ==========================================================
+       PROCESAMIENTO DE CONTENIDO
+       ========================================================== */
+    function handleContentUpdate(data) {
+      var slides = [];
+
+      if (data.slides) {
+        // data.slides puede ser un objeto o array
+        var slideList = Array.isArray(data.slides) ? data.slides : Object.values(data.slides);
+
+        slideList.forEach(function(slide) {
+          if (slide && slide.active !== false) {
+            slides.push({
+              type: slide.type || 'image',           // image | text | promo
+              imageUrl: slide.imageUrl || '',
+              title: slide.title || '',
+              description: slide.description || '',
+              price: slide.price || '',
+              duration: slide.duration || state.defaultDuration,
+              bgColor: slide.bgColor || '',
+              textColor: slide.textColor || ''
+            });
+          }
+        });
+      }
+
+      if (slides.length > 0) {
+        state.slides = slides;
+        state.lastUpdate = Date.now();
+        saveToCache(data);
+        renderSlides();
+        startSlideshow();
+      }
+    }
+
+    function applyConfig(config) {
+      if (config.transitionType) {
+        state.transitionType = config.transitionType;
+        updateTransitionClass();
+      }
+      if (config.transitionSpeed) {
+        state.transitionSpeed = config.transitionSpeed;
+        document.documentElement.style.setProperty('--transition-speed', config.transitionSpeed + 's');
+      }
+      if (config.defaultDuration) {
+        state.defaultDuration = config.defaultDuration;
+      }
+      if (config.primaryColor) {
+        document.documentElement.style.setProperty('--primary', config.primaryColor);
+      }
+      if (config.bgColor) {
+        document.documentElement.style.setProperty('--bg-dark', config.bgColor);
+      }
+      if (config.showClock === false) {
+        document.getElementById('info-bar').style.display = 'none';
+      }
+      if (config.showIndicators === false) {
+        document.getElementById('slide-indicators').style.display = 'none';
+      }
+    }
+
+    function updateTransitionClass() {
+      var player = document.getElementById('player');
+      player.className = '';
+      if (state.transitionType !== 'fade') {
+        player.classList.add('transition-' + state.transitionType);
+      }
+    }
+
+    /* ==========================================================
+       RENDERIZADO DE SLIDES
+       ========================================================== */
+    function renderSlides() {
+      var player = document.getElementById('player');
+      var noContent = document.getElementById('no-content');
+
+      // Ocultar pantalla de espera
+      noContent.classList.add('hidden');
+
+      // Limpiar slides existentes
+      var existing = player.querySelectorAll('.slide');
+      existing.forEach(function(el) { el.remove(); });
+
+      // Crear slides
+      state.slides.forEach(function(slide, index) {
+        var el = document.createElement('div');
+        el.className = 'slide';
+        el.dataset.index = index;
+
+        if (slide.type === 'text' || (!slide.imageUrl && slide.title)) {
+          // Slide solo texto
+          var textEl = document.createElement('div');
+          textEl.className = 'slide-text-only';
+          if (slide.bgColor) textEl.style.background = slide.bgColor;
+          if (slide.textColor) textEl.style.color = slide.textColor;
+
+          var html = '';
+          if (slide.title) html += '<div class="slide-title">' + escapeHtml(slide.title) + '</div>';
+          if (slide.description) html += '<div class="slide-description">' + escapeHtml(slide.description) + '</div>';
+          if (slide.price) html += '<div class="slide-price">' + escapeHtml(slide.price) + '</div>';
+          textEl.innerHTML = html;
+          el.appendChild(textEl);
+
+        } else {
+          // Slide con imagen
+          var imgDiv = document.createElement('div');
+          imgDiv.className = 'slide-image';
+
+          var img = new Image();
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          img.src = slide.imageUrl;
+          img.alt = slide.title || 'Slide ' + (index + 1);
+          imgDiv.appendChild(img);
+          el.appendChild(imgDiv);
+
+          // Overlay
+          var overlay = document.createElement('div');
+          overlay.className = 'slide-overlay';
+          el.appendChild(overlay);
+
+          // Contenido de texto
+          if (slide.title || slide.description || slide.price) {
+            var content = document.createElement('div');
+            content.className = 'slide-content';
+            var contentHtml = '';
+            if (slide.title) contentHtml += '<div class="slide-title">' + escapeHtml(slide.title) + '</div>';
+            if (slide.description) contentHtml += '<div class="slide-description">' + escapeHtml(slide.description) + '</div>';
+            if (slide.price) contentHtml += '<div class="slide-price">' + escapeHtml(slide.price) + '</div>';
+            content.innerHTML = contentHtml;
+            el.appendChild(content);
+          }
+        }
+
+        player.appendChild(el);
+      });
+
+      // Renderizar indicadores
+      renderIndicators();
+
+      // Aplicar clase de transición
+      updateTransitionClass();
+
+      // Activar primer slide
+      state.currentIndex = 0;
+      activateSlide(0);
+    }
+
+    function renderIndicators() {
+      var container = document.getElementById('slide-indicators');
+      container.innerHTML = '';
+
+      if (state.slides.length <= 1) return;
+
+      state.slides.forEach(function(_, index) {
+        var dot = document.createElement('div');
+        dot.className = 'indicator' + (index === 0 ? ' active' : '');
+        dot.dataset.index = index;
+        container.appendChild(dot);
+      });
+    }
+
+    /* ==========================================================
+       CONTROL DEL SLIDESHOW
+       ========================================================== */
+    function startSlideshow() {
+      stopSlideshow();
+      if (state.slides.length <= 1) return;
+
+      scheduleNext();
+    }
+
+    function stopSlideshow() {
+      if (state.timer) clearTimeout(state.timer);
+      if (state.progressTimer) cancelAnimationFrame(state.progressTimer);
+    }
+
+    function scheduleNext() {
+      var duration = (state.slides[state.currentIndex] && state.slides[state.currentIndex].duration)
+                     || state.defaultDuration;
+      var durationMs = duration * 1000;
+
+      // Barra de progreso
+      state.progressStart = Date.now();
+      updateProgress(durationMs);
+
+      state.timer = setTimeout(function() {
+        nextSlide();
+      }, durationMs);
+    }
+
+    function nextSlide() {
+      var next = (state.currentIndex + 1) % state.slides.length;
+      activateSlide(next);
+      scheduleNext();
+    }
+
+    function activateSlide(index) {
+      var slides = document.querySelectorAll('#player .slide');
+      var indicators = document.querySelectorAll('.indicator');
+
+      slides.forEach(function(el) {
+        el.classList.remove('active', 'prev');
+      });
+
+      // Marcar el anterior como prev para la transición
+      if (slides[state.currentIndex]) {
+        slides[state.currentIndex].classList.add('prev');
+      }
+
+      // Activar el nuevo
+      if (slides[index]) {
+        slides[index].classList.add('active');
+      }
+
+      // Actualizar indicadores
+      indicators.forEach(function(dot) {
+        dot.classList.remove('active');
+      });
+      if (indicators[index]) {
+        indicators[index].classList.add('active');
+      }
+
+      state.currentIndex = index;
+    }
+
+    function updateProgress(totalMs) {
+      var bar = document.getElementById('progress-bar');
+
+      function step() {
+        var elapsed = Date.now() - state.progressStart;
+        var progress = Math.min(elapsed / totalMs, 1);
+        bar.style.width = (progress * 100) + '%';
+
+        if (progress < 1) {
+          state.progressTimer = requestAnimationFrame(step);
+        }
+      }
+
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+      requestAnimationFrame(function() {
+        state.progressTimer = requestAnimationFrame(step);
+      });
+    }
+
+    /* ==========================================================
+       CACHÉ LOCAL (localStorage)
+       ========================================================== */
+    function saveToCache(data) {
+      try {
+        localStorage.setItem('signtv_cache_' + state.screenId, JSON.stringify(data));
+        localStorage.setItem('signtv_cache_time_' + state.screenId, Date.now().toString());
+      } catch (e) { /* silenciar errores de cuota */ }
+    }
+
+    function loadFromCache() {
+      try {
+        var cached = localStorage.getItem('signtv_cache_' + state.screenId);
+        if (cached) {
+          var data = JSON.parse(cached);
+          handleContentUpdate(data);
+        }
+      } catch (e) { /* silenciar */ }
+    }
+
+    /* ==========================================================
+       MONITOREO DE CONEXIÓN
+       ========================================================== */
+    function monitorConnection() {
+      var connRef = db.ref('.info/connected');
+
+      connRef.on('value', function(snap) {
+        var dot = document.getElementById('status-dot');
+        var text = document.getElementById('status-text');
+
+        if (snap.val() === true) {
+          state.isOnline = true;
+          dot.classList.remove('offline');
+          text.textContent = 'Conectado';
+        } else {
+          state.isOnline = false;
+          dot.classList.add('offline');
+          text.textContent = 'Sin conexión';
+        }
+      });
+
+      // Fallback con navigator.onLine
+      window.addEventListener('online', function() {
+        document.getElementById('status-dot').classList.remove('offline');
+        document.getElementById('status-text').textContent = 'Conectado';
+      });
+
+      window.addEventListener('offline', function() {
+        document.getElementById('status-dot').classList.add('offline');
+        document.getElementById('status-text').textContent = 'Sin conexión';
+      });
+    }
+
+    /* ==========================================================
+       REPORTE DE ESTADO DE PANTALLA
+       ========================================================== */
+    function reportScreenStatus() {
+      if (!state.isOnline) return;
+
+      try {
+        db.ref('screenStatus/' + state.screenId).set({
+          online: true,
+          lastSeen: firebase.database.ServerValue.TIMESTAMP,
+          currentSlide: state.currentIndex,
+          totalSlides: state.slides.length,
+          screenWidth: window.innerWidth,
+          screenHeight: window.innerHeight,
+          userAgent: navigator.userAgent
+        });
+      } catch (e) { /* silenciar */ }
+    }
+
+    /* ==========================================================
+       UTILIDADES
+       ========================================================== */
+    function escapeHtml(text) {
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Prevenir menú contextual y selección (modo kiosk)
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+
+    // Teclas de depuración (Shift+D para mostrar info)
+    document.addEventListener('keydown', function(e) {
+      if (e.shiftKey && e.key === 'D') {
+        alert('Pantalla: ' + state.screenId +
+              '\nSlides: ' + state.slides.length +
+              '\nActual: ' + (state.currentIndex + 1) +
+              '\nConexión: ' + (state.isOnline ? 'Online' : 'Offline') +
+              '\nÚltima actualización: ' + new Date(state.lastUpdate).toLocaleString());
+      }
+    });
+  </script>
+</body>
+</html>
