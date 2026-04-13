@@ -413,38 +413,6 @@
       font-size: 0.9rem;
     }
 
-    /* ========== PANTALLAS CONECTADAS ========== */
-    .screen-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.8rem 1rem;
-      background: var(--bg-input);
-      border-radius: 8px;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .screen-item .screen-name {
-      font-weight: 600;
-    }
-
-    .screen-item .screen-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: var(--text-dim);
-    }
-
-    .screen-item .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-
-    .screen-item .dot.offline { background: var(--danger); }
-
     /* ========== HISTORIAL ========== */
     .history-item {
       padding: 0.7rem 0;
@@ -727,14 +695,6 @@
         </div>
 
         <!-- Pantallas conectadas -->
-        <div class="section">
-          <div class="section-title">Pantallas Conectadas</div>
-          <div id="screen-list">
-            <div style="text-align:center; padding:1rem; color:var(--text-dim); font-size:0.85rem;">
-              Cargando pantallas...
-            </div>
-          </div>
-        </div>
       </aside>
     </div>
   </div>
@@ -964,7 +924,6 @@
        ========================================================== */
     function initAdmin() {
       loadSlides();
-      loadScreenStatus();
       loadConfig();
       loadHistory();
       setupEventListeners();
@@ -1313,53 +1272,6 @@
         .catch(function(err) {
           showToast('Error: ' + err.message, 'error');
         });
-    }
-
-    /* ==========================================================
-       PANTALLAS CONECTADAS
-       ========================================================== */
-    function loadScreenStatus() {
-      db.ref('screenStatus').on('value', function(snapshot) {
-        var data = snapshot.val();
-        var container = document.getElementById('screen-list');
-        var sel = document.getElementById('target-screen');
-
-        if (!data) {
-          container.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-dim); font-size:0.85rem;">No hay pantallas conectadas</div>';
-          return;
-        }
-
-        container.innerHTML = '';
-        var now = Date.now();
-
-        Object.keys(data).forEach(function(screenId) {
-          var screen = data[screenId];
-          var isOnline = screen.lastSeen && (now - screen.lastSeen < 60000);
-          var lastSeen = screen.lastSeen ? new Date(screen.lastSeen).toLocaleTimeString('es-ES') : 'Nunca';
-
-          var el = document.createElement('div');
-          el.className = 'screen-item';
-          el.innerHTML =
-            '<span class="screen-name">' + escapeHtml(screenId) + '</span>' +
-            '<span class="screen-status">' +
-              '<span class="dot ' + (isOnline ? '' : 'offline') + '"></span>' +
-              (isOnline ? 'Online' : 'Offline - ' + lastSeen) +
-            '</span>';
-          container.appendChild(el);
-
-          // Agregar al selector si no existe
-          var exists = false;
-          for (var i = 0; i < sel.options.length; i++) {
-            if (sel.options[i].value === screenId) { exists = true; break; }
-          }
-          if (!exists) {
-            var opt = document.createElement('option');
-            opt.value = screenId;
-            opt.textContent = 'Pantalla: ' + screenId;
-            sel.appendChild(opt);
-          }
-        });
-      });
     }
 
     /* ==========================================================

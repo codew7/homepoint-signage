@@ -470,9 +470,6 @@
         }
       });
 
-      // Reportar estado de pantalla
-      reportScreenStatus();
-      setInterval(reportScreenStatus, 30000); // cada 30s
     }
 
     /* ==========================================================
@@ -772,25 +769,6 @@
         document.getElementById('status-dot').classList.add('offline');
         document.getElementById('status-text').textContent = 'Sin conexión';
       });
-    }
-
-    /* ==========================================================
-       REPORTE DE ESTADO DE PANTALLA
-       ========================================================== */
-    function reportScreenStatus() {
-      if (!state.isOnline) return;
-
-      try {
-        db.ref('screenStatus/' + state.screenId).set({
-          online: true,
-          lastSeen: firebase.database.ServerValue.TIMESTAMP,
-          currentSlide: state.currentIndex,
-          totalSlides: state.slides.length,
-          screenWidth: window.innerWidth,
-          screenHeight: window.innerHeight,
-          userAgent: navigator.userAgent
-        });
-      } catch (e) { /* silenciar */ }
     }
 
     /* ==========================================================
