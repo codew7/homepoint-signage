@@ -420,12 +420,143 @@
       font-size: clamp(1.2rem, 8vw, 8rem);
     }
 
+    /* ========== SLIDE CATÁLOGO ========== */
+    .slide-catalogo {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 48% 52%;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    /* Panel izquierdo: texto */
+    .slide-catalogo-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5% 7% 5% 8%;
+      position: relative;
+      background: #0a0f1e;
+    }
+
+    /* Franja lateral izquierda degradada */
+    .slide-catalogo-left::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 8px;
+      height: 100%;
+      background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+    }
+
+    /* Nombre del artículo */
+    .slide-catalogo-nombre {
+      font-size: clamp(1.4rem, 3.8vw, 5rem);
+      font-weight: 900;
+      color: #f1f5f9;
+      line-height: 1.1;
+      margin-bottom: 0.6em;
+      letter-spacing: -0.02em;
+      word-break: break-word;
+    }
+
+    /* Separador decorativo */
+    .slide-catalogo-sep {
+      width: clamp(40px, 8%, 80px);
+      height: 4px;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      border-radius: 3px;
+      margin-bottom: 0.5em;
+    }
+
+    /* Valor del artículo */
+    .slide-catalogo-precio {
+      font-size: clamp(3.5rem, 9.5vw, 12rem);
+      font-weight: 900;
+      color: #4ade80;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      text-shadow: 0 0 40px rgba(74, 222, 128, 0.35);
+    }
+
+    .slide-catalogo-precio--sin {
+      font-size: clamp(1rem, 2.5vw, 2.5rem) !important;
+      color: #475569 !important;
+      font-style: italic;
+      font-weight: 600 !important;
+      text-shadow: none !important;
+    }
+
+    /* Panel derecho: imagen */
+    .slide-catalogo-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4% 5% 2%;
+      background: #f8fafc;
+      border-left: 2px solid #f1f5f9;
+      position: relative;
+    }
+
+    /* Acento de esquina decorativo */
+    .slide-catalogo-right::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 0; height: 0;
+      border-style: solid;
+      border-width: 0 60px 60px 0;
+      border-color: transparent #15803d transparent transparent;
+      opacity: 0.15;
+    }
+
+    .slide-catalogo-img-wrap {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 4%;
+    }
+
+    .slide-catalogo-img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.18));
+    }
+
+    .slide-catalogo-leyenda {
+      font-size: clamp(1rem, 2.2vw, 2.1rem);
+      color: #4ade80;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: left;
+      margin-top: 30px;
+      opacity: 0.75;
+    }
+
+    .slide-catalogo-logo {
+      position: absolute;
+      top: 6%;
+      left: 8%;
+      width: clamp(80px, 14vw, 180px);
+      opacity: 0.9;
+    }
+
     /* ========== RESPONSIVE ========== */
     @media (max-width: 768px) {
       .slide-content { padding: 5vw; }
       .slide-description { max-width: 100%; }
       #slide-indicators { bottom: 10px; gap: 6px; }
       .indicator { width: 8px; height: 8px; }
+      .slide-catalogo { grid-template-columns: 50% 50%; }
+      .slide-catalogo-nombre { font-size: clamp(1.2rem, 4.5vw, 3.5rem); }
+      .slide-catalogo-precio { font-size: clamp(2.5rem, 8vw, 7rem); }
     }
 
     @media (max-width: 480px) {
@@ -636,11 +767,12 @@
         slideList.forEach(function(slide) {
           if (slide && slide.active !== false) {
             slides.push({
-              type: slide.type || 'image',           // image | text | promo
+              type: slide.type || 'image',           // image | text | promo | catalogo
               imageUrl: slide.imageUrl || '',
               title: slide.title || '',
               description: slide.description || '',
               price: slide.price || '',
+              leyenda: slide.leyenda || '',
               duration: slide.duration || state.defaultDuration,
               bgColor: slide.bgColor || '',
               textColor: slide.textColor || ''
@@ -712,7 +844,28 @@
         el.className = 'slide';
         el.dataset.index = index;
 
-        if (slide.type === 'text' || (!slide.imageUrl && slide.title)) {
+        if (slide.type === 'catalogo') {
+          // Slide catálogo: nombre + precio izquierda, imagen derecha
+          var precioHtml = slide.price
+            ? '<div class="slide-catalogo-precio">' + escapeHtml(slide.price) + '</div>'
+            : '<div class="slide-catalogo-precio slide-catalogo-precio--sin">Consultar</div>';
+          el.innerHTML =
+            '<div class="slide-catalogo">' +
+              '<div class="slide-catalogo-left">' +
+                '<img src="logoblanco.png" class="slide-catalogo-logo" alt="Logo">' +
+                '<div class="slide-catalogo-nombre">' + escapeHtml(slide.title || '') + '</div>' +
+                '<div class="slide-catalogo-sep"></div>' +
+                precioHtml +
+                (slide.leyenda ? '<div class="slide-catalogo-leyenda">' + escapeHtml(slide.leyenda) + '</div>' : '') +
+              '</div>' +
+              '<div class="slide-catalogo-right">' +
+                '<div class="slide-catalogo-img-wrap">' +
+                  (slide.imageUrl ? '<img src="' + escapeHtml(slide.imageUrl) + '" alt="' + escapeHtml(slide.title || '') + '">' : '') +
+                '</div>' +
+              '</div>' +
+            '</div>';
+
+        } else if (slide.type === 'text' || (!slide.imageUrl && slide.title)) {
           // Slide solo texto
           var textEl = document.createElement('div');
           textEl.className = 'slide-text-only';

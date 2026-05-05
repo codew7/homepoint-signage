@@ -398,9 +398,12 @@
     }
 
     .preview-frame iframe {
-      width: 100%; height: 100%;
+      width: 1920px;
+      height: 1080px;
       border: none;
       pointer-events: none;
+      transform-origin: top left;
+      transform: scale(var(--preview-scale, 1));
     }
 
     .preview-placeholder {
@@ -540,6 +543,86 @@
     .upload-area .icon { font-size: 2rem; margin-bottom: 0.5rem; }
     .upload-area .hint { font-size: 0.8rem; margin-top: 0.5rem; }
 
+    /* ========== BUSCADOR DE CATÁLOGO ========== */
+    .catalogo-search-wrap { position: relative; }
+
+    .catalogo-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+    }
+
+    .catalogo-dropdown.open { display: block; }
+
+    .catalogo-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .catalogo-option:hover { background: var(--bg-input); }
+    .catalogo-option:last-child { border-bottom: none; }
+
+    .catalogo-opt-img {
+      width: 42px; height: 42px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #fff;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .catalogo-opt-img img { width: 100%; height: 100%; object-fit: contain; }
+    .catalogo-opt-img span { font-size: 0.65rem; color: #aaa; }
+
+    .catalogo-opt-info { min-width: 0; }
+
+    .catalogo-opt-nombre {
+      font-size: 0.88rem; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .catalogo-opt-precio { font-size: 0.8rem; color: var(--primary); font-weight: 600; margin-top: 2px; }
+
+    .catalogo-preview-card {
+      display: none;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--primary);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+
+    .catalogo-preview-card.visible { display: flex; }
+
+    .catalogo-preview-img {
+      width: 60px; height: 60px;
+      border-radius: 8px;
+      object-fit: contain;
+      background: #fff;
+      flex-shrink: 0;
+      display: none;
+    }
+
+    .catalogo-preview-img.visible { display: block; }
+
+    .catalogo-preview-nombre { font-weight: 700; font-size: 0.95rem; }
+    .catalogo-preview-precio { color: var(--warning); font-weight: 700; font-size: 1rem; margin-top: 3px; }
+
     /* ========== RESPONSIVE ========== */
     @media (max-width: 900px) {
       .admin-layout {
@@ -602,7 +685,7 @@
                 <select id="slide-type">
                   <option value="image">Imagen con texto</option>
                   <option value="text">Solo texto</option>
-                  <option value="promo">Promocion/Oferta</option>
+                  <option value="catalogo">Catalogo</option>
                 </select>
               </div>
               <div class="form-group">
@@ -643,6 +726,45 @@
               <label>Precio / Etiqueta</label>
               <input type="text" id="slide-price" placeholder="Ej: $299.99 o 30% OFF">
             </div>
+
+            <!-- ===== GRUPO CATÁLOGO ===== -->
+            <div id="catalogo-group" style="display:none;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.05em;">Articulo del catalogo</label>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span id="catalogo-status" style="font-size:0.78rem; color:var(--text-dim);"></span>
+                  <button type="button" class="btn btn-outline btn-sm" id="btn-load-catalogo">&#8635; Cargar articulos</button>
+                </div>
+              </div>
+
+              <div class="catalogo-search-wrap">
+                <input type="text" id="catalogo-search" placeholder="Buscar articulo..." autocomplete="off" class="form-group" style="width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg-input); color:var(--text); font-size:0.95rem; outline:none; font-family:inherit; transition:border-color 0.2s;" disabled>
+                <div id="catalogo-dropdown" class="catalogo-dropdown"></div>
+              </div>
+
+              <div class="catalogo-preview-card" id="catalogo-preview-card">
+                <img class="catalogo-preview-img" id="catalogo-preview-img" alt="Imagen articulo">
+                <div>
+                  <div class="catalogo-preview-nombre" id="catalogo-preview-nombre"></div>
+                  <div class="catalogo-preview-precio" id="catalogo-preview-precio"></div>
+                </div>
+              </div>
+
+              <input type="hidden" id="catalogo-nombre">
+              <input type="hidden" id="catalogo-imagen">
+              <input type="hidden" id="catalogo-precio-raw">
+
+              <div class="form-group" style="margin-top:12px;">
+                <label>Precio manual <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--text-dim);">(opcional — reemplaza el de Google Sheets)</span></label>
+                <input type="text" id="slide-precio-manual" placeholder="Ej: $15.999">
+              </div>
+
+              <div class="form-group">
+                <label>Leyenda</label>
+                <input type="text" id="slide-leyenda" value="ABONANDO EN EFECTIVO" placeholder="Texto de leyenda bajo la imagen">
+              </div>
+            </div>
+            <!-- ===== FIN GRUPO CATÁLOGO ===== -->
 
             <div class="form-row">
               <div class="form-group">
@@ -790,7 +912,7 @@
         <select id="edit-type">
           <option value="image">Imagen con texto</option>
           <option value="text">Solo texto</option>
-          <option value="promo">Promocion/Oferta</option>
+          <option value="catalogo">Catalogo</option>
         </select>
       </div>
 
@@ -812,6 +934,11 @@
       <div class="form-group">
         <label>Precio / Etiqueta</label>
         <input type="text" id="edit-price">
+      </div>
+
+      <div class="form-group" id="edit-leyenda-group">
+        <label>Leyenda</label>
+        <input type="text" id="edit-leyenda" placeholder="Ej: ABONANDO EN EFECTIVO">
       </div>
 
       <div class="form-row">
@@ -857,8 +984,17 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <!-- Configuración compartida (Google Sheets config) -->
+  <script src="config.js"></script>
 
   <script>
+    /* ==========================================================
+       CONFIGURACIÓN GOOGLE SHEETS (catálogo) — desde config.js
+       ========================================================== */
+    var SHEETS_API_KEY = GOOGLE_SHEETS_CONFIG.API_KEY;
+    var SHEETS_ID = GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID;
+    var SHEETS_RANGE = GOOGLE_SHEETS_CONFIG.RANGO;
+
     /* ==========================================================
        CONFIGURACIÓN FIREBASE
        ========================================================== */
@@ -1030,8 +1166,19 @@
 
       // Tipo de slide: mostrar/ocultar campos
       document.getElementById('slide-type').addEventListener('change', function() {
-        var isText = this.value === 'text';
-        document.getElementById('image-upload-group').style.display = isText ? 'none' : 'block';
+        var type = this.value;
+        var isCatalogo = type === 'catalogo';
+        var isText = type === 'text';
+        document.getElementById('image-upload-group').style.display = (isText || isCatalogo) ? 'none' : 'block';
+        document.getElementById('price-group').style.display = isCatalogo ? 'none' : 'block';
+        document.getElementById('catalogo-group').style.display = isCatalogo ? 'block' : 'none';
+        if (isCatalogo) {
+          document.getElementById('slide-title').closest('.form-group').style.display = 'none';
+          document.getElementById('slide-description').closest('.form-group').style.display = 'none';
+        } else {
+          document.getElementById('slide-title').closest('.form-group').style.display = 'block';
+          document.getElementById('slide-description').closest('.form-group').style.display = 'block';
+        }
       });
 
       // Sincronizar color pickers
@@ -1066,6 +1213,9 @@
           if (e.target === overlay) overlay.classList.remove('visible');
         });
       });
+
+      // Catálogo
+      initCatalogo();
     }
 
     /* ==========================================================
@@ -1160,37 +1310,68 @@
        ========================================================== */
     function addSlide() {
       var type = document.getElementById('slide-type').value;
-      var title = document.getElementById('slide-title').value.trim();
-      var description = document.getElementById('slide-description').value.trim();
-      var price = document.getElementById('slide-price').value.trim();
       var duration = parseInt(document.getElementById('slide-duration').value) || 8;
-      var imageUrl = document.getElementById('slide-image-url').value.trim();
-      var bgColor = document.getElementById('slide-bg-color-text').value;
-      var textColor = document.getElementById('slide-text-color-text').value;
+      var slide;
 
-      if (!title && !imageUrl) {
-        showToast('Agrega al menos un titulo o imagen', 'error');
-        return;
+      if (type === 'catalogo') {
+        var catNombre = document.getElementById('catalogo-nombre').value.trim();
+        var catImagen = document.getElementById('catalogo-imagen').value.trim();
+        var catPrecioRaw = document.getElementById('catalogo-precio-raw').value.trim();
+        var catPrecioManual = document.getElementById('slide-precio-manual').value.trim();
+        var catLeyenda = document.getElementById('slide-leyenda').value.trim();
+
+        if (!catNombre) {
+          showToast('Selecciona un articulo del catalogo', 'error');
+          return;
+        }
+
+        var precioFormateado = catPrecioManual || formatPrecioCatalogo(catPrecioRaw);
+
+        slide = {
+          type: 'catalogo',
+          title: catNombre,
+          imageUrl: catImagen,
+          price: precioFormateado,
+          leyenda: catLeyenda || 'ABONANDO EN EFECTIVO',
+          description: '',
+          bgColor: '#ffffff',
+          textColor: '#1b5e20',
+          duration: duration,
+          active: true,
+          createdAt: Date.now()
+        };
+      } else {
+        var title = document.getElementById('slide-title').value.trim();
+        var description = document.getElementById('slide-description').value.trim();
+        var price = document.getElementById('slide-price').value.trim();
+        var imageUrl = document.getElementById('slide-image-url').value.trim();
+        var bgColor = document.getElementById('slide-bg-color-text').value;
+        var textColor = document.getElementById('slide-text-color-text').value;
+
+        if (!title && !imageUrl) {
+          showToast('Agrega al menos un titulo o imagen', 'error');
+          return;
+        }
+
+        slide = {
+          type: type,
+          title: title,
+          description: description,
+          price: price,
+          duration: duration,
+          imageUrl: imageUrl,
+          bgColor: bgColor,
+          textColor: textColor,
+          active: true,
+          createdAt: Date.now()
+        };
       }
-
-      var slide = {
-        type: type,
-        title: title,
-        description: description,
-        price: price,
-        duration: duration,
-        imageUrl: imageUrl,
-        bgColor: bgColor,
-        textColor: textColor,
-        active: true,
-        createdAt: Date.now()
-      };
 
       slides.push(slide);
       saveSlides();
       clearForm();
       showToast('Slide agregado correctamente');
-      addHistoryEntry('Slide agregado: ' + (title || 'Sin titulo'));
+      addHistoryEntry('Slide agregado: ' + (slide.title || 'Sin titulo'));
     }
 
     function deleteSlide(index) {
@@ -1217,11 +1398,20 @@
       document.getElementById('edit-text-color').value = slide.textColor || '#ffffff';
       document.getElementById('edit-text-color-text').value = slide.textColor || '#ffffff';
 
+      document.getElementById('edit-leyenda').value = slide.leyenda || '';
+
       var imageGroup = document.getElementById('edit-image-group');
-      imageGroup.style.display = slide.type === 'text' ? 'none' : 'block';
+      var leyendaGroup = document.getElementById('edit-leyenda-group');
+
+      function updateEditFields(type) {
+        imageGroup.style.display = type === 'text' ? 'none' : 'block';
+        leyendaGroup.style.display = type === 'catalogo' ? 'block' : 'none';
+      }
+
+      updateEditFields(slide.type || 'image');
 
       document.getElementById('edit-type').addEventListener('change', function() {
-        imageGroup.style.display = this.value === 'text' ? 'none' : 'block';
+        updateEditFields(this.value);
       });
 
       openModal('edit-modal');
@@ -1235,6 +1425,7 @@
       slides[index].title = document.getElementById('edit-title').value.trim();
       slides[index].description = document.getElementById('edit-description').value.trim();
       slides[index].price = document.getElementById('edit-price').value.trim();
+      slides[index].leyenda = document.getElementById('edit-leyenda').value.trim();
       slides[index].duration = parseInt(document.getElementById('edit-duration').value) || 8;
       slides[index].active = document.getElementById('edit-active').value === 'true';
       slides[index].bgColor = document.getElementById('edit-bg-color-text').value;
@@ -1404,7 +1595,16 @@
         // Thumbnail
         var thumb = document.createElement('div');
         thumb.className = 'slide-thumb';
-        if (slide.imageUrl && !slide.imageUrl.startsWith('data:')) {
+        if (slide.type === 'catalogo') {
+          thumb.style.background = '#fff';
+          if (slide.imageUrl) {
+            thumb.innerHTML = '<img src="' + escapeHtml(slide.imageUrl) + '" loading="lazy" style="object-fit:contain;">';
+          } else {
+            thumb.style.color = '#1b5e20';
+            thumb.style.fontWeight = '700';
+            thumb.textContent = 'CAT';
+          }
+        } else if (slide.imageUrl && !slide.imageUrl.startsWith('data:')) {
           thumb.innerHTML = '<img src="' + escapeHtml(slide.imageUrl) + '" loading="lazy">';
         } else if (slide.imageUrl && slide.imageUrl.startsWith('data:')) {
           thumb.innerHTML = '<img src="' + slide.imageUrl + '" loading="lazy">';
@@ -1416,10 +1616,11 @@
         // Info
         var info = document.createElement('div');
         info.className = 'slide-info';
+        var typeLabel = slide.type === 'catalogo' ? 'catalogo' : slide.type;
         info.innerHTML =
           '<div class="name">' + escapeHtml(slide.title || 'Sin titulo') + '</div>' +
           '<div class="meta">' +
-            slide.type + ' | ' + slide.duration + 's | ' +
+            typeLabel + ' | ' + slide.duration + 's | ' +
             (slide.active !== false ? '<span style="color:var(--accent)">Activo</span>' : '<span style="color:var(--danger)">Inactivo</span>') +
           '</div>';
 
@@ -1472,11 +1673,18 @@
     function updatePreview() {
       var iframe = document.getElementById('preview-iframe');
       var placeholder = document.getElementById('preview-placeholder');
+      var frame = document.querySelector('.preview-frame');
+
+      function applyScale() {
+        var w = frame.offsetWidth;
+        var scale = w / 1920;
+        frame.style.setProperty('--preview-scale', scale);
+      }
 
       if (slides.length > 0) {
         placeholder.style.display = 'none';
+        applyScale();
         var previewUrl = 'cartelera.html?s=' + encodeURIComponent(currentScreen);
-        // Forzar recarga aunque la URL base sea la misma
         iframe.src = '';
         setTimeout(function() { iframe.src = previewUrl; }, 50);
       } else {
@@ -1484,6 +1692,20 @@
         iframe.src = '';
       }
     }
+
+    // Recalcular escala si cambia el tamaño del sidebar
+    (function() {
+      var ro = new ResizeObserver(function() {
+        var frame = document.querySelector('.preview-frame');
+        if (!frame) return;
+        var w = frame.offsetWidth;
+        frame.style.setProperty('--preview-scale', w / 1920);
+      });
+      document.addEventListener('DOMContentLoaded', function() {
+        var frame = document.querySelector('.preview-frame');
+        if (frame) ro.observe(frame);
+      });
+    })();
 
     /* ==========================================================
        UTILIDADES
@@ -1502,6 +1724,159 @@
       document.getElementById('image-preview').style.display = 'none';
       document.getElementById('image-upload-group').style.display = 'block';
       document.getElementById('image-file').value = '';
+      // Restaurar campos ocultos/visibles
+      document.getElementById('slide-title').closest('.form-group').style.display = 'block';
+      document.getElementById('slide-description').closest('.form-group').style.display = 'block';
+      document.getElementById('price-group').style.display = 'block';
+      document.getElementById('catalogo-group').style.display = 'none';
+      // Limpiar catálogo
+      document.getElementById('catalogo-search').value = '';
+      document.getElementById('catalogo-nombre').value = '';
+      document.getElementById('catalogo-imagen').value = '';
+      document.getElementById('catalogo-precio-raw').value = '';
+      document.getElementById('slide-precio-manual').value = '';
+      document.getElementById('slide-leyenda').value = 'ABONANDO EN EFECTIVO';
+      document.getElementById('catalogo-preview-card').classList.remove('visible');
+      document.getElementById('catalogo-dropdown').classList.remove('open');
+    }
+
+    /* ==========================================================
+       CATÁLOGO DESDE GOOGLE SHEETS
+       ========================================================== */
+    var catalogoArticulos = [];
+    var catalogoCargado = false;
+
+    function initCatalogo() {
+      var btnLoad = document.getElementById('btn-load-catalogo');
+      var searchInput = document.getElementById('catalogo-search');
+      var dropdown = document.getElementById('catalogo-dropdown');
+
+      btnLoad.addEventListener('click', loadCatalogoArticulos);
+
+      searchInput.addEventListener('focus', function() {
+        if (catalogoArticulos.length > 0) dropdown.classList.add('open');
+      });
+
+      searchInput.addEventListener('input', function() {
+        var q = this.value.toLowerCase().trim();
+        var filtered = q
+          ? catalogoArticulos.filter(function(item) {
+              return (item[3] || '').toLowerCase().includes(q);
+            })
+          : catalogoArticulos;
+        renderCatalogoDropdown(filtered.slice(0, 25));
+        dropdown.classList.add('open');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.catalogo-search-wrap')) {
+          dropdown.classList.remove('open');
+        }
+      });
+    }
+
+    function loadCatalogoArticulos() {
+      var status = document.getElementById('catalogo-status');
+      var btn = document.getElementById('btn-load-catalogo');
+      var searchInput = document.getElementById('catalogo-search');
+
+      status.textContent = 'Cargando...';
+      btn.disabled = true;
+
+      var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEETS_ID +
+                '/values/' + SHEETS_RANGE + '?key=' + SHEETS_API_KEY;
+
+      fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var rows = data.values || [];
+          catalogoArticulos = rows.filter(function(item) {
+            return item[3];
+          });
+          catalogoCargado = true;
+          status.textContent = catalogoArticulos.length + ' articulos';
+          btn.disabled = false;
+          searchInput.disabled = false;
+          searchInput.focus();
+          renderCatalogoDropdown(catalogoArticulos.slice(0, 25));
+          document.getElementById('catalogo-dropdown').classList.add('open');
+        })
+        .catch(function() {
+          status.textContent = 'Error al cargar';
+          btn.disabled = false;
+          showToast('No se pudo cargar el catalogo', 'error');
+        });
+    }
+
+    function renderCatalogoDropdown(items) {
+      var dropdown = document.getElementById('catalogo-dropdown');
+      if (!items.length) {
+        dropdown.innerHTML = '<div style="padding:12px 16px; color:var(--text-dim); font-size:0.9rem;">Sin resultados</div>';
+        return;
+      }
+      dropdown.innerHTML = '';
+      items.forEach(function(item) {
+        var nombre = item[3] || '';
+        var precio = item[6] || '';
+        var firstImg = (item[1] || '').split(',')[0].trim();
+
+        var div = document.createElement('div');
+        div.className = 'catalogo-option';
+        div.innerHTML =
+          '<div class="catalogo-opt-img">' +
+            (firstImg ? '<img src="' + escapeHtml(firstImg) + '" loading="lazy">' : '<span>IMG</span>') +
+          '</div>' +
+          '<div class="catalogo-opt-info">' +
+            '<div class="catalogo-opt-nombre">' + escapeHtml(nombre) + '</div>' +
+            '<div class="catalogo-opt-precio">' + formatPrecioCatalogo(precio) + '</div>' +
+          '</div>';
+
+        div.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          selectCatalogoArticulo(item);
+        });
+        dropdown.appendChild(div);
+      });
+    }
+
+    function selectCatalogoArticulo(item) {
+      var nombre = item[3] || '';
+      var precioRaw = item[6] || '';
+      var firstImg = (item[1] || '').split(',')[0].trim();
+
+      document.getElementById('catalogo-nombre').value = nombre;
+      document.getElementById('catalogo-imagen').value = firstImg;
+      document.getElementById('catalogo-precio-raw').value = precioRaw;
+      document.getElementById('catalogo-search').value = nombre;
+      document.getElementById('catalogo-dropdown').classList.remove('open');
+
+      // Vista previa
+      var card = document.getElementById('catalogo-preview-card');
+      card.classList.add('visible');
+      document.getElementById('catalogo-preview-nombre').textContent = nombre;
+      document.getElementById('catalogo-preview-precio').textContent = formatPrecioCatalogo(precioRaw);
+
+      var prevImg = document.getElementById('catalogo-preview-img');
+      if (firstImg) {
+        prevImg.src = firstImg;
+        prevImg.classList.add('visible');
+      } else {
+        prevImg.classList.remove('visible');
+      }
+    }
+
+    function formatPrecioCatalogo(raw) {
+      if (!raw) return '';
+      var s = String(raw).trim();
+      if (!s) return '';
+      // Quitar $ y comas (separador de miles en col G)
+      var clean = s.replace(/\$/g, '').replace(/,/g, '').trim();
+      if (!clean) return '';
+      var num = parseFloat(clean);
+      if (!isNaN(num) && num > 0) {
+        return '$' + Math.round(num).toLocaleString('es-AR');
+      }
+      return '$' + clean;
     }
 
     function escapeHtml(text) {
