@@ -769,6 +769,7 @@
             slides.push({
               type: slide.type || 'image',           // image | text | promo | catalogo
               imageUrl: slide.imageUrl || '',
+              imageUrlFallback: slide.imageUrlFallback || '',
               title: slide.title || '',
               description: slide.description || '',
               price: slide.price || '',
@@ -864,6 +865,19 @@
                 '</div>' +
               '</div>' +
             '</div>';
+
+          // Si la imagen no carga, usar el link alternativo del catalogo
+          var catImg = el.querySelector('.slide-catalogo-img-wrap img');
+          if (catImg) {
+            catImg.onerror = function() {
+              this.onerror = null;
+              if (slide.imageUrlFallback && slide.imageUrlFallback !== this.getAttribute('src')) {
+                this.src = slide.imageUrlFallback;
+              } else {
+                this.style.display = 'none';
+              }
+            };
+          }
 
         } else if (slide.type === 'text' || (!slide.imageUrl && slide.title)) {
           // Slide solo texto

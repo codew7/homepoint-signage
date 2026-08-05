@@ -752,11 +752,12 @@
 
               <input type="hidden" id="catalogo-nombre">
               <input type="hidden" id="catalogo-imagen">
+              <input type="hidden" id="catalogo-imagen-fallback">
               <input type="hidden" id="catalogo-precio-raw">
 
               <div class="form-group" style="margin-top:12px;">
                 <label>Precio manual <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--text-dim);">(opcional — reemplaza el de Google Sheets)</span></label>
-                <input type="text" id="slide-precio-manual" placeholder="Ej: $15.999">
+                <input type="text" id="slide-precio-manual" inputmode="numeric" autocomplete="off" placeholder="Ej: 15999 (solo numeros)">
               </div>
 
               <div class="form-group">
@@ -1216,6 +1217,13 @@
 
       // Catálogo
       initCatalogo();
+
+      // Precio manual: solo digitos
+      var precioManualInput = document.getElementById('slide-precio-manual');
+      precioManualInput.addEventListener('input', function() {
+        var soloDigitos = this.value.replace(/\D/g, '');
+        if (this.value !== soloDigitos) this.value = soloDigitos;
+      });
     }
 
     /* ==========================================================
@@ -1316,6 +1324,7 @@
       if (type === 'catalogo') {
         var catNombre = document.getElementById('catalogo-nombre').value.trim();
         var catImagen = document.getElementById('catalogo-imagen').value.trim();
+        var catImagenFallback = document.getElementById('catalogo-imagen-fallback').value.trim();
         var catPrecioRaw = document.getElementById('catalogo-precio-raw').value.trim();
         var catPrecioManual = document.getElementById('slide-precio-manual').value.trim();
         var catLeyenda = document.getElementById('slide-leyenda').value.trim();
@@ -1325,12 +1334,13 @@
           return;
         }
 
-        var precioFormateado = catPrecioManual || formatPrecioCatalogo(catPrecioRaw);
+        var precioFormateado = formatPrecioManual(catPrecioManual) || formatPrecioCatalogo(catPrecioRaw);
 
         slide = {
           type: 'catalogo',
           title: catNombre,
           imageUrl: catImagen,
+          imageUrlFallback: catImagenFallback,
           price: precioFormateado,
           leyenda: catLeyenda || 'ABONANDO EN EFECTIVO',
           description: '',
@@ -1421,7 +1431,13 @@
       var index = parseInt(document.getElementById('edit-slide-index').value);
 
       slides[index].type = document.getElementById('edit-type').value;
-      slides[index].imageUrl = document.getElementById('edit-image-url').value.trim();
+
+      // Si se cambia la imagen a mano, el fallback del catalogo ya no corresponde
+      var nuevaImageUrl = document.getElementById('edit-image-url').value.trim();
+      if (nuevaImageUrl !== (slides[index].imageUrl || '')) {
+        slides[index].imageUrlFallback = '';
+      }
+      slides[index].imageUrl = nuevaImageUrl;
       slides[index].title = document.getElementById('edit-title').value.trim();
       slides[index].description = document.getElementById('edit-description').value.trim();
       slides[index].price = document.getElementById('edit-price').value.trim();
@@ -1599,6 +1615,17 @@
           thumb.style.background = '#fff';
           if (slide.imageUrl) {
             thumb.innerHTML = '<img src="' + escapeHtml(slide.imageUrl) + '" loading="lazy" style="object-fit:contain;">';
+            var thumbImg = thumb.querySelector('img');
+            thumbImg.onerror = function() {
+              this.onerror = null;
+              if (slide.imageUrlFallback && slide.imageUrlFallback !== this.getAttribute('src')) {
+                this.src = slide.imageUrlFallback;
+              } else {
+                thumb.style.color = '#1b5e20';
+                thumb.style.fontWeight = '700';
+                thumb.textContent = 'CAT';
+              }
+            };
           } else {
             thumb.style.color = '#1b5e20';
             thumb.style.fontWeight = '700';
@@ -1733,6 +1760,7 @@
       document.getElementById('catalogo-search').value = '';
       document.getElementById('catalogo-nombre').value = '';
       document.getElementById('catalogo-imagen').value = '';
+      document.getElementById('catalogo-imagen-fallback').value = '';
       document.getElementById('catalogo-precio-raw').value = '';
       document.getElementById('slide-precio-manual').value = '';
       document.getElementById('slide-leyenda').value = 'ABONANDO EN EFECTIVO';
@@ -1818,7 +1846,9 @@
       items.forEach(function(item) {
         var nombre = item[3] || '';
         var precio = item[6] || '';
-        var firstImg = (item[1] || '').split(',')[0].trim();
+        var imgs = getCatalogoImagenes(item);
+        var firstImg = imgs[0] || '';
+        var fallbackImg = imgs[3] || '';
 
         var div = document.createElement('div');
         div.className = 'catalogo-option';
@@ -1831,6 +1861,15 @@
             '<div class="catalogo-opt-precio">' + formatPrecioCatalogo(precio) + '</div>' +
           '</div>';
 
+        // Si la miniatura no carga, mostrar el 4to link
+        var thumbImg = div.querySelector('.catalogo-opt-img img');
+        if (thumbImg && fallbackImg) {
+          thumbImg.onerror = function() {
+            this.onerror = null;
+            this.src = fallbackImg;
+          };
+        }
+
         div.addEventListener('mousedown', function(e) {
           e.preventDefault();
           selectCatalogoArticulo(item);
@@ -1842,10 +1881,13 @@
     function selectCatalogoArticulo(item) {
       var nombre = item[3] || '';
       var precioRaw = item[6] || '';
-      var firstImg = (item[1] || '').split(',')[0].trim();
+      var imgs = getCatalogoImagenes(item);
+      var imgPrimaria = imgs[0] || '';
+      var imgFallback = imgs[3] || '';
 
       document.getElementById('catalogo-nombre').value = nombre;
-      document.getElementById('catalogo-imagen').value = firstImg;
+      document.getElementById('catalogo-imagen').value = imgPrimaria;
+      document.getElementById('catalogo-imagen-fallback').value = imgFallback;
       document.getElementById('catalogo-precio-raw').value = precioRaw;
       document.getElementById('catalogo-search').value = nombre;
       document.getElementById('catalogo-dropdown').classList.remove('open');
@@ -1857,12 +1899,79 @@
       document.getElementById('catalogo-preview-precio').textContent = formatPrecioCatalogo(precioRaw);
 
       var prevImg = document.getElementById('catalogo-preview-img');
-      if (firstImg) {
-        prevImg.src = firstImg;
+      if (imgPrimaria) {
+        prevImg.src = imgPrimaria;
         prevImg.classList.add('visible');
       } else {
         prevImg.classList.remove('visible');
       }
+
+      // Si la primera imagen no carga, usar el 4to link de la celda
+      if (imgPrimaria && imgFallback) {
+        verificarImagenCatalogo(nombre, imgPrimaria, imgFallback);
+      }
+    }
+
+    // Comprueba la imagen primaria y, si falla, sustituye por el 4to link
+    function verificarImagenCatalogo(nombre, imgPrimaria, imgFallback) {
+      var status = document.getElementById('catalogo-status');
+      var statusPrevio = catalogoCargado ? catalogoArticulos.length + ' articulos' : '';
+      status.textContent = 'Verificando imagen...';
+
+      checkImagenCarga(imgPrimaria, function(ok) {
+        // El usuario pudo haber seleccionado otro articulo mientras tanto
+        if (document.getElementById('catalogo-nombre').value !== nombre) return;
+
+        if (ok) {
+          status.textContent = statusPrevio;
+          return;
+        }
+
+        checkImagenCarga(imgFallback, function(okFallback) {
+          if (document.getElementById('catalogo-nombre').value !== nombre) return;
+
+          if (okFallback) {
+            document.getElementById('catalogo-imagen').value = imgFallback;
+            var prevImg = document.getElementById('catalogo-preview-img');
+            prevImg.src = imgFallback;
+            prevImg.classList.add('visible');
+            status.textContent = 'Imagen alternativa';
+          } else {
+            // Ninguna carga: se conserva la primaria (comportamiento previo)
+            status.textContent = statusPrevio;
+          }
+        });
+      });
+    }
+
+    // Links de imagen de la columna B, preservando posiciones (no filtra vacios)
+    function getCatalogoImagenes(item) {
+      return String((item && item[1]) || '').split(',').map(function(s) { return s.trim(); });
+    }
+
+    // Verifica que una URL cargue realmente como imagen
+    function checkImagenCarga(url, cb) {
+      if (!url) { cb(false); return; }
+      var img = new Image();
+      var done = false;
+      var t = setTimeout(function() {
+        if (!done) { done = true; cb(false); }
+      }, 6000);
+      img.onload = function() {
+        if (!done) { done = true; clearTimeout(t); cb(img.naturalWidth > 0); }
+      };
+      img.onerror = function() {
+        if (!done) { done = true; clearTimeout(t); cb(false); }
+      };
+      img.src = url;
+    }
+
+    // Precio manual: el usuario ingresa solo numeros (ej: 12567) -> "$12.567"
+    function formatPrecioManual(raw) {
+      if (!raw) return '';
+      var digitos = String(raw).replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+      if (!digitos) return '';
+      return '$' + digitos.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
     function formatPrecioCatalogo(raw) {

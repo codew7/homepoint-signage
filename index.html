@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="theme-color" content="#0B0B0C">
   <title>HomePoint - Cartelera Digital</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
   <style>
     /* ========== RESET & BASE ========== */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,13 +16,41 @@
     :root {
       --primary: #50d753;
       --primary-dark: #3db840;
-      --bg-dark: #000000;
-      --bg-card: #1a1a2e;
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0b8;
+
+      /* Superficies: carbon, no negro puro. El negro absoluto se funde con el
+         bisel del televisor y aplana las sombras del producto. */
+      --bg-dark: #0B0B0C;
+      --bg-card: #141518;
+      --panel: #0B0B0C;
+      --panel-hi: rgba(255,255,255,0.07);
+
+      /* Tinta: blanco hueso, mas descansado que el #fff puro a 3 metros */
+      --ink: #F6F5F3;
+      --ink-dim: rgba(246,245,243,0.52);
+      --ink-faint: rgba(246,245,243,0.26);
+      --ink-dark: #14151A;
+
+      /* Escenario del producto: luz de estudio calida */
+      --stage-warm: #FBF9F6;
+      --stage-mid: #EFEBE5;
+      --stage-cool: #D9D4CB;
+
+      --text-primary: #F6F5F3;
+      --text-secondary: rgba(246,245,243,0.52);
       --accent: #00d4aa;
-      --overlay-gradient: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+      --danger: #ff6b6b;
+
+      --overlay-gradient: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.88) 100%);
+
+      /* Margen anti-overscan: muchos televisores recortan 2-5% del borde */
+      --safe: 3.2vh;
+      --ease: cubic-bezier(.22,.61,.36,1);
       --transition-speed: 1s;
+
+      /* Grano estatico: rompe el banding de los degradados en paneles de 8 bits */
+      --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+
+      --font-sans: 'Manrope', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
 
     /* ========== LOGIN ========== */
@@ -29,84 +60,111 @@
       justify-content: center;
       position: fixed;
       inset: 0;
-      background: #000;
+      background:
+        radial-gradient(90% 70% at 50% 0%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 60%),
+        var(--panel);
       z-index: 1000;
+    }
+
+    #login-screen::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: var(--grain);
+      opacity: 0.035;
+      pointer-events: none;
     }
 
     #login-screen.hidden { display: none; }
 
     .login-box {
-      background: #111;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 3rem 2.5rem;
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      padding: 3.2rem 2.6rem;
       width: 100%;
-      max-width: 380px;
-      text-align: center;
+      max-width: 400px;
+      text-align: left;
     }
 
     .login-box .logo {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 0.3em;
-      color: #fff;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.35em;
+      color: var(--ink);
     }
 
     .login-box .logo span { color: var(--primary); }
 
     .login-box .subtitle {
-      color: rgba(255,255,255,0.4);
-      margin-bottom: 2rem;
-      font-size: 0.9rem;
+      color: var(--ink-dim);
+      margin-bottom: 2.4rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
     }
 
     .login-box input {
       width: 100%;
-      padding: 13px 16px;
+      padding: 15px 16px;
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      background: rgba(255,255,255,0.05);
-      color: #fff;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.25);
+      color: var(--ink);
       font-size: 1rem;
-      margin-bottom: 0.8rem;
+      margin-bottom: 0.7rem;
       outline: none;
       font-family: inherit;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
     }
 
-    .login-box input:focus { border-color: var(--primary); }
+    .login-box input::placeholder { color: var(--ink-faint); }
+
+    .login-box input:focus {
+      border-color: var(--primary);
+      background: rgba(0,0,0,0.4);
+    }
 
     .login-error {
-      color: #ff4444;
-      font-size: 0.85rem;
+      color: var(--danger);
+      font-size: 0.82rem;
       margin-bottom: 0.8rem;
       display: none;
     }
 
     .login-btn {
       width: 100%;
-      padding: 13px;
+      margin-top: 0.6rem;
+      padding: 15px;
       background: var(--primary);
-      color: #000;
+      color: #08130A;
       border: none;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
       font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: filter 0.2s;
+      transition: filter 0.2s var(--ease);
       font-family: inherit;
     }
 
-    .login-btn:hover { filter: brightness(1.1); }
+    .login-btn:hover { filter: brightness(1.08); }
     .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: var(--font-sans);
       background: var(--bg-dark);
       color: var(--text-primary);
       cursor: none;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
     /* ========== REPRODUCTOR PRINCIPAL ========== */
@@ -174,42 +232,56 @@
       position: absolute;
       bottom: 0;
       left: 0; right: 0;
-      padding: 3vw 4vw;
+      padding: 14vh 5vw calc(var(--safe) + 3vh);
       z-index: 2;
-      text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+      background: var(--overlay-gradient);
+      text-shadow: none;
     }
 
     .slide-title {
-      font-size: clamp(2rem, 7vw, 7rem);
-      font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 0.1em;
-      letter-spacing: -0.02em;
+      font-size: clamp(1.8rem, 5.4vw, 5.6rem);
+      font-weight: 600;
+      line-height: 1.06;
+      margin-bottom: 0.18em;
+      letter-spacing: -0.022em;
+      color: var(--ink);
     }
 
     .slide-description {
-      font-size: clamp(1rem, 5vw, 5rem);
-      font-weight: 700;
-      max-width: 70%;
-      line-height: 1.3;
+      font-size: clamp(0.9rem, 2.2vw, 2.3rem);
+      font-weight: 500;
+      max-width: 62%;
+      line-height: 1.35;
+      color: var(--ink);
+      opacity: 0.72;
     }
 
     .slide-price {
-      display: inline-block;
-      margin-top: 0.5em;
-      padding: 0.3em 0.8em;
-      background: var(--primary);
-      color: white;
-      font-size: clamp(1.5rem, 4.5vw, 5rem);
-      font-weight: 900;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.08em;
+      margin-top: 0.55em;
+      padding: 0.26em 0.62em;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--ink);
+      font-size: clamp(1.5rem, 4vw, 4.4rem);
+      font-weight: 800;
       border-radius: 12px;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.035em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .slide-price .cur {
+      font-size: 0.5em;
+      font-weight: 600;
+      opacity: 0.6;
     }
 
     /* ========== RELOJ ESQUINA INFERIOR DERECHA ========== */
     #info-bar {
       position: fixed;
-      bottom: 1.5vw; right: 2vw;
+      bottom: var(--safe); right: var(--safe);
       z-index: 100;
       pointer-events: all;
       text-align: right;
@@ -224,8 +296,8 @@
     /* ========== MENÚ DE PANTALLAS ========== */
     #screen-menu {
       position: fixed;
-      bottom: calc(1.5vw + 80px);
-      right: 2vw;
+      bottom: calc(var(--safe) + 80px);
+      right: var(--safe);
       background: rgba(10,10,10,0.92);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 12px;
@@ -274,87 +346,117 @@
     }
 
     #clock {
-      font-size: clamp(1.5rem, 3vw, 3rem);
-      font-weight: 700;
+      font-size: clamp(1rem, 1.7vw, 1.9rem);
+      font-weight: 500;
       font-variant-numeric: tabular-nums;
-      letter-spacing: 0.02em;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+      letter-spacing: 0.01em;
+      color: var(--ink);
+      opacity: 0.55;
+      text-shadow: none;
+      transition: color 0.5s var(--ease);
     }
 
     #date-display {
-      font-size: clamp(0.7rem, 1.2vw, 1.2rem);
-      opacity: 0.7;
-      text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7);
-      text-transform: capitalize;
+      font-size: clamp(0.55rem, 0.82vw, 0.92rem);
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink);
+      opacity: 0.32;
+      margin-top: 0.45em;
+      text-shadow: none;
+      transition: color 0.5s var(--ease);
     }
 
+    /* Sobre el slide de catalogo el chrome cae encima del panel claro:
+       la clase la conmuta activateSlide() segun el tipo de slide activo. */
+    body.chrome-dark #clock,
+    body.chrome-dark #date-display { color: var(--ink-dark); }
+
     /* ========== BARRA DE PROGRESO ========== */
+    /* Hairline superior: al pie competia con la leyenda del precio.
+       Va en --primary y no en blanco porque cruza el panel claro del catalogo. */
     #progress-bar {
       position: fixed;
-      bottom: 0;
+      top: 0;
       left: 0;
-      height: 4px;
+      height: 3px;
       background: var(--primary);
+      opacity: 0.85;
       z-index: 100;
       transition: width linear;
-      border-radius: 0 2px 2px 0;
     }
 
     /* ========== INDICADORES DE SLIDE ========== */
     #slide-indicators {
       position: fixed;
-      bottom: 20px;
+      bottom: var(--safe);
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 10px;
+      align-items: center;
+      gap: 8px;
       z-index: 100;
     }
 
     .indicator {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      transition: all 0.3s ease;
-      border: 2px solid rgba(255,255,255,0.5);
+      width: 22px; height: 3px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.26);
+      border: none;
+      transition: width 0.4s var(--ease), background 0.4s var(--ease);
     }
 
     .indicator.active {
+      width: 44px;
       background: var(--primary);
-      border-color: var(--primary);
-      transform: scale(1.3);
-      box-shadow: 0 0 12px var(--primary);
     }
+
+    body.chrome-dark .indicator { background: rgba(20,21,26,0.18); }
+    body.chrome-dark .indicator.active { background: var(--primary); }
 
     /* ========== ESTADO DE CONEXIÓN ========== */
     #connection-status {
       position: fixed;
-      bottom: 1.5vw;
-      left: 2vw;
+      bottom: var(--safe);
+      left: var(--safe);
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: clamp(0.6rem, 1vw, 0.9rem);
-      opacity: 0.6;
+      gap: 8px;
+      font-size: clamp(0.55rem, 0.8vw, 0.9rem);
       z-index: 100;
       pointer-events: none;
     }
 
     .status-dot {
-      width: 8px; height: 8px;
+      width: 7px; height: 7px;
       border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 2s infinite;
+      background: var(--primary);
+      opacity: 0.5;
+      animation: pulse 3s infinite;
     }
 
     .status-dot.offline {
-      background: #ff4444;
+      background: var(--danger);
+      opacity: 1;
       animation: none;
     }
 
+    /* Con conexion basta el punto; el texto solo aparece si algo anda mal */
+    #status-text {
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--danger);
+      opacity: 0;
+      transition: opacity 0.3s var(--ease);
+    }
+
+    #connection-status.is-offline #status-text { opacity: 1; }
+
     @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.18; }
     }
 
     /* ========== PANTALLA SIN CONTENIDO ========== */
@@ -366,36 +468,42 @@
       align-items: center;
       justify-content: center;
       z-index: 50;
-      background: var(--bg-dark);
+      background:
+        radial-gradient(90% 70% at 50% 0%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 60%),
+        var(--bg-dark);
     }
 
     #no-content.hidden { display: none; }
 
     #no-content .nc-logo {
-      font-size: clamp(2rem, 5vw, 4rem);
-      font-weight: 800;
-      margin-bottom: 0.5em;
+      font-size: clamp(1.6rem, 3.4vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 1.1em;
     }
 
     #no-content .nc-logo span { color: var(--primary); }
 
     #no-content .nc-message {
-      font-size: clamp(1rem, 2vw, 1.5rem);
-      color: var(--text-secondary);
-      animation: blink 2s infinite;
+      font-size: clamp(0.7rem, 1.1vw, 1.1rem);
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      animation: blink 3s infinite;
     }
 
     #no-content .nc-id {
-      margin-top: 1em;
-      font-size: clamp(0.7rem, 1vw, 1rem);
-      color: var(--text-secondary);
-      opacity: 0.5;
-      font-family: monospace;
+      margin-top: 1.6em;
+      font-size: clamp(0.6rem, 0.85vw, 0.9rem);
+      letter-spacing: 0.1em;
+      color: var(--ink-faint);
     }
 
     @keyframes blink {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+      50% { opacity: 0.35; }
     }
 
     /* ========== SLIDE TIPO TEXTO (sin imagen) ========== */
@@ -405,19 +513,19 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 5vw;
+      padding: calc(var(--safe) + 4vh) 8vw;
       background: var(--bg-dark);
       width: 100%; height: 100%;
     }
 
     .slide-text-only .slide-title {
-      font-size: clamp(2.5rem, 10vw, 10rem);
-      margin-bottom: 0.1em;
+      font-size: clamp(2.2rem, 7.5vw, 8rem);
+      margin-bottom: 0.24em;
     }
 
     .slide-text-only .slide-description {
-      max-width: 80%;
-      font-size: clamp(1.2rem, 8vw, 8rem);
+      max-width: 72%;
+      font-size: clamp(1rem, 2.6vw, 2.8rem);
     }
 
     /* ========== SLIDE CATÁLOGO ========== */
@@ -425,142 +533,265 @@
       position: absolute;
       inset: 0;
       display: grid;
-      grid-template-columns: 48% 52%;
-      background: #ffffff;
+      grid-template-columns: 44% 56%;
+      background: var(--panel);
       overflow: hidden;
     }
 
-    /* Panel izquierdo: texto */
+    /* ---------- Panel izquierdo: la ficha ---------- */
     .slide-catalogo-left {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 5% 7% 5% 8%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      padding: calc(var(--safe) + 2.5vh) 4vw calc(var(--safe) + 2.5vh) 5vw;
       position: relative;
-      background: #0a0f1e;
-    }
-
-    /* Franja lateral izquierda degradada */
-    .slide-catalogo-left::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 8px;
-      height: 100%;
-      background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
-    }
-
-    /* Nombre del artículo */
-    .slide-catalogo-nombre {
-      font-size: clamp(1.4rem, 3.8vw, 5rem);
-      font-weight: 900;
-      color: #f1f5f9;
-      line-height: 1.1;
-      margin-bottom: 0.6em;
-      letter-spacing: -0.02em;
-      word-break: break-word;
-    }
-
-    /* Separador decorativo */
-    .slide-catalogo-sep {
-      width: clamp(40px, 8%, 80px);
-      height: 4px;
-      background: linear-gradient(90deg, #22c55e, #4ade80);
-      border-radius: 3px;
-      margin-bottom: 0.5em;
-    }
-
-    /* Valor del artículo */
-    .slide-catalogo-precio {
-      font-size: clamp(3.5rem, 9.5vw, 12rem);
-      font-weight: 900;
-      color: #4ade80;
-      line-height: 0.95;
-      letter-spacing: -0.03em;
-      text-shadow: 0 0 40px rgba(74, 222, 128, 0.35);
-    }
-
-    .slide-catalogo-precio--sin {
-      font-size: clamp(1rem, 2.5vw, 2.5rem) !important;
-      color: #475569 !important;
-      font-style: italic;
-      font-weight: 600 !important;
-      text-shadow: none !important;
-    }
-
-    /* Panel derecho: imagen */
-    .slide-catalogo-right {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 4% 5% 2%;
-      background: #f8fafc;
-      border-left: 2px solid #f1f5f9;
-      position: relative;
-    }
-
-    /* Acento de esquina decorativo */
-    .slide-catalogo-right::before {
-      content: '';
-      position: absolute;
-      top: 0; right: 0;
-      width: 0; height: 0;
-      border-style: solid;
-      border-width: 0 60px 60px 0;
-      border-color: transparent #15803d transparent transparent;
-      opacity: 0.15;
-    }
-
-    .slide-catalogo-img-wrap {
-      flex: 1;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background:
+        radial-gradient(120% 95% at 6% 0%, var(--panel-hi) 0%, rgba(255,255,255,0) 58%),
+        var(--panel);
       overflow: hidden;
-      padding: 4%;
     }
 
-    .slide-catalogo-img-wrap img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.18));
-    }
-
-    .slide-catalogo-leyenda {
-      font-size: clamp(1rem, 2.2vw, 2.1rem);
-      color: #4ade80;
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      text-align: left;
-      margin-top: 30px;
-      opacity: 0.75;
+    .slide-catalogo-left::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: var(--grain);
+      opacity: 0.035;
+      pointer-events: none;
     }
 
     .slide-catalogo-logo {
+      width: clamp(140px, 18vw, 300px);
+      opacity: 0.92;
+      align-self: start;
+    }
+
+    /* El texto se centra en el espacio que deja el logo */
+    .slide-catalogo-body {
+      align-self: center;
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+    }
+
+    .slide-catalogo-eyebrow {
+      font-size: clamp(0.6rem, 0.95vw, 1.1rem);
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: clamp(10px, 1.6vh, 22px);
+    }
+
+    /* Nombre del artículo. Peso 600, no 900: el precio es el que manda. */
+    .slide-catalogo-nombre {
+      font-size: clamp(1.2rem, 2.9vw, 3.8rem);
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.08;
+      letter-spacing: -0.018em;
+      margin-bottom: clamp(16px, 2.6vh, 36px);
+      overflow-wrap: anywhere;
+      /* Los nombres largos del catalogo no pueden empujar el precio fuera */
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .slide-catalogo-sep {
+      width: 72px;
+      height: 2px;
+      background: var(--primary);
+      margin-bottom: clamp(16px, 2.6vh, 36px);
+    }
+
+    /* Valor del artículo: el protagonista */
+    .slide-catalogo-precio {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.05em;
+      font-size: clamp(2.7rem, 6.6vw, 8.8rem);
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 0.9;
+      letter-spacing: -0.038em;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    /* La escala se ajusta a la cantidad de digitos: un precio de millones
+       no puede desbordar el ancho del panel. La clase la asigna el render. */
+    .slide-catalogo-precio.is-xl { font-size: clamp(3.4rem, 9vw, 12rem); }
+    .slide-catalogo-precio.is-lg { font-size: clamp(3.1rem, 8vw, 10.6rem); }
+    .slide-catalogo-precio.is-md { font-size: clamp(2.7rem, 6.6vw, 8.8rem); }
+    .slide-catalogo-precio.is-sm { font-size: clamp(2.3rem, 5.7vw, 7.6rem); }
+    .slide-catalogo-precio.is-xs { font-size: clamp(1.9rem, 4.8vw, 6.4rem); }
+
+    .slide-catalogo-precio .cur {
+      font-size: 0.44em;
+      font-weight: 600;
+      line-height: 1;
+      opacity: 0.5;
+      margin-top: 0.14em;
+    }
+
+    .slide-catalogo-precio--sin {
+      font-size: clamp(1rem, 2.2vw, 2.2rem) !important;
+      color: var(--ink-dim) !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.02em !important;
+    }
+
+    .slide-catalogo-leyenda {
+      display: flex;
+      align-items: center;
+      gap: 0.9em;
+      font-size: clamp(0.65rem, 1.05vw, 1.25rem);
+      color: var(--primary);
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-top: clamp(18px, 2.8vh, 40px);
+    }
+
+    .slide-catalogo-leyenda::before {
+      content: '';
+      flex: none;
+      width: 1.8em;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.5;
+    }
+
+    /* ---------- Panel derecho: el escenario del producto ---------- */
+    .slide-catalogo-right {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(var(--safe) + 1.5vh) 4vw;
+      /* Luz de estudio: foco calido arriba, caida hacia los bordes */
+      background: radial-gradient(78% 62% at 50% 20%,
+        var(--stage-warm) 0%,
+        var(--stage-mid) 48%,
+        var(--stage-cool) 100%);
+      overflow: hidden;
+    }
+
+    /* Viñeta */
+    .slide-catalogo-right::after {
+      content: '';
       position: absolute;
-      top: 6%;
-      left: 8%;
-      width: clamp(80px, 14vw, 180px);
-      opacity: 0.9;
+      inset: 0;
+      background: radial-gradient(76% 72% at 50% 42%,
+        rgba(0,0,0,0) 56%,
+        rgba(38,32,26,0.17) 100%);
+      pointer-events: none;
+    }
+
+    .slide-catalogo-img-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3% 3% 5%;
+      min-height: 0;
+    }
+
+    /* Caja de tamaño definido: darle altura automatica genera una dependencia
+       circular con la imagen y colapsa a cero. */
+    .slide-catalogo-stage {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Sombra de contacto: ancla el producto al piso. Los valores por defecto
+       sirven de respaldo; anchorContactShadow() los ajusta al borde inferior
+       real de la imagen una vez que carga. */
+    .slide-catalogo-stage::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: var(--shadow-bottom, 8%);
+      width: var(--shadow-width, 58%);
+      height: clamp(10px, 2.4vh, 34px);
+      transform: translateX(-50%);
+      background: radial-gradient(closest-side,
+        rgba(34,28,22,0.42) 0%,
+        rgba(34,28,22,0.15) 48%,
+        rgba(34,28,22,0) 100%);
+      pointer-events: none;
+    }
+
+    .slide-catalogo-stage img {
+      position: relative;
+      z-index: 1;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 26px rgba(34,28,22,0.14));
+    }
+
+    /* ---------- Entrada escalonada ---------- */
+    @keyframes hp-rise {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @keyframes hp-emerge {
+      from { opacity: 0; transform: scale(0.975); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .slide.active .slide-catalogo-logo,
+    .slide.active .slide-catalogo-eyebrow,
+    .slide.active .slide-catalogo-nombre,
+    .slide.active .slide-catalogo-sep,
+    .slide.active .slide-catalogo-precio,
+    .slide.active .slide-catalogo-leyenda {
+      animation: hp-rise 0.7s var(--ease) both;
+    }
+
+    .slide.active .slide-catalogo-logo    { animation-delay: 0.06s; }
+    .slide.active .slide-catalogo-eyebrow { animation-delay: 0.14s; }
+    .slide.active .slide-catalogo-nombre  { animation-delay: 0.20s; }
+    .slide.active .slide-catalogo-sep     { animation-delay: 0.28s; }
+    .slide.active .slide-catalogo-precio  { animation-delay: 0.34s; }
+    .slide.active .slide-catalogo-leyenda { animation-delay: 0.44s; }
+
+    .slide.active .slide-catalogo-stage {
+      animation: hp-emerge 0.85s var(--ease) 0.16s both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .slide.active .slide-catalogo-logo,
+      .slide.active .slide-catalogo-eyebrow,
+      .slide.active .slide-catalogo-nombre,
+      .slide.active .slide-catalogo-sep,
+      .slide.active .slide-catalogo-precio,
+      .slide.active .slide-catalogo-leyenda,
+      .slide.active .slide-catalogo-stage { animation: none; }
     }
 
     /* ========== RESPONSIVE ========== */
     @media (max-width: 768px) {
-      .slide-content { padding: 5vw; }
+      :root { --safe: 2vh; }
+      .slide-content { padding: 12vh 6vw calc(var(--safe) + 2vh); }
       .slide-description { max-width: 100%; }
-      #slide-indicators { bottom: 10px; gap: 6px; }
-      .indicator { width: 8px; height: 8px; }
-      .slide-catalogo { grid-template-columns: 50% 50%; }
-      .slide-catalogo-nombre { font-size: clamp(1.2rem, 4.5vw, 3.5rem); }
-      .slide-catalogo-precio { font-size: clamp(2.5rem, 8vw, 7rem); }
-    }
-
-    @media (max-width: 480px) {
-      #info-bar { padding: 3vw; }
+      #slide-indicators { gap: 6px; }
+      .indicator { width: 16px; }
+      .indicator.active { width: 30px; }
+      .slide-catalogo { grid-template-columns: 47% 53%; }
+      .slide-catalogo-left { padding: calc(var(--safe) + 1.5vh) 5vw; }
+      .slide-catalogo-nombre { font-size: clamp(1.1rem, 3.6vw, 3rem); -webkit-line-clamp: 2; }
+      .slide-catalogo-precio { font-size: clamp(2.2rem, 7.6vw, 6rem); }
+      .slide-catalogo-sep { width: 48px; }
     }
   </style>
 </head>
@@ -769,6 +1000,7 @@
             slides.push({
               type: slide.type || 'image',           // image | text | promo | catalogo
               imageUrl: slide.imageUrl || '',
+              imageUrlFallback: slide.imageUrlFallback || '',
               title: slide.title || '',
               description: slide.description || '',
               price: slide.price || '',
@@ -845,25 +1077,45 @@
         el.dataset.index = index;
 
         if (slide.type === 'catalogo') {
-          // Slide catálogo: nombre + precio izquierda, imagen derecha
+          // Slide catálogo: ficha a la izquierda, escenario del producto a la derecha
           var precioHtml = slide.price
-            ? '<div class="slide-catalogo-precio">' + escapeHtml(slide.price) + '</div>'
+            ? '<div class="slide-catalogo-precio ' + priceSizeClass(slide.price) + '">' + formatPriceHtml(slide.price) + '</div>'
             : '<div class="slide-catalogo-precio slide-catalogo-precio--sin">Consultar</div>';
           el.innerHTML =
             '<div class="slide-catalogo">' +
               '<div class="slide-catalogo-left">' +
-                '<img src="logoblanco.png" class="slide-catalogo-logo" alt="Logo">' +
-                '<div class="slide-catalogo-nombre">' + escapeHtml(slide.title || '') + '</div>' +
-                '<div class="slide-catalogo-sep"></div>' +
-                precioHtml +
-                (slide.leyenda ? '<div class="slide-catalogo-leyenda">' + escapeHtml(slide.leyenda) + '</div>' : '') +
+                '<img src="logoblanco.png" class="slide-catalogo-logo" alt="HomePoint">' +
+                '<div class="slide-catalogo-body">' +
+                  (slide.description ? '<div class="slide-catalogo-eyebrow">' + escapeHtml(slide.description) + '</div>' : '') +
+                  '<div class="slide-catalogo-nombre">' + escapeHtml(slide.title || '') + '</div>' +
+                  '<div class="slide-catalogo-sep"></div>' +
+                  precioHtml +
+                  (slide.leyenda ? '<div class="slide-catalogo-leyenda">' + escapeHtml(slide.leyenda) + '</div>' : '') +
+                '</div>' +
               '</div>' +
               '<div class="slide-catalogo-right">' +
                 '<div class="slide-catalogo-img-wrap">' +
-                  (slide.imageUrl ? '<img src="' + escapeHtml(slide.imageUrl) + '" alt="' + escapeHtml(slide.title || '') + '">' : '') +
+                  (slide.imageUrl ? '<div class="slide-catalogo-stage"><img src="' + escapeHtml(slide.imageUrl) + '" alt="' + escapeHtml(slide.title || '') + '"></div>' : '') +
                 '</div>' +
               '</div>' +
             '</div>';
+
+          // Si la imagen no carga, usar el link alternativo del catalogo
+          var catImg = el.querySelector('.slide-catalogo-img-wrap img');
+          if (catImg) {
+            catImg.onload = function() { anchorContactShadow(this); };
+            catImg.onerror = function() {
+              this.onerror = null;
+              if (slide.imageUrlFallback && slide.imageUrlFallback !== this.getAttribute('src')) {
+                this.src = slide.imageUrlFallback;
+              } else {
+                // Ocultar el escenario completo: si no hay imagen, tampoco
+                // debe quedar flotando su sombra de contacto.
+                var stage = this.closest ? this.closest('.slide-catalogo-stage') : this.parentNode;
+                (stage || this).style.display = 'none';
+              }
+            };
+          }
 
         } else if (slide.type === 'text' || (!slide.imageUrl && slide.title)) {
           // Slide solo texto
@@ -875,7 +1127,7 @@
           var html = '';
           if (slide.title) html += '<div class="slide-title">' + escapeHtml(slide.title) + '</div>';
           if (slide.description) html += '<div class="slide-description">' + escapeHtml(slide.description) + '</div>';
-          if (slide.price) html += '<div class="slide-price">' + escapeHtml(slide.price) + '</div>';
+          if (slide.price) html += '<div class="slide-price">' + formatPriceHtml(slide.price) + '</div>';
           textEl.innerHTML = html;
           el.appendChild(textEl);
 
@@ -900,7 +1152,7 @@
             var contentHtml = '';
             if (slide.title) contentHtml += '<div class="slide-title">' + escapeHtml(slide.title) + '</div>';
             if (slide.description) contentHtml += '<div class="slide-description">' + escapeHtml(slide.description) + '</div>';
-            if (slide.price) contentHtml += '<div class="slide-price">' + escapeHtml(slide.price) + '</div>';
+            if (slide.price) contentHtml += '<div class="slide-price">' + formatPriceHtml(slide.price) + '</div>';
             content.innerHTML = contentHtml;
             el.appendChild(content);
           }
@@ -911,6 +1163,14 @@
 
       // Renderizar indicadores
       renderIndicators();
+
+      // Anclar las sombras de las imagenes que ya estaban en cache: su onload
+      // pudo dispararse antes de que el slide estuviera en el DOM.
+      requestAnimationFrame(function() {
+        player.querySelectorAll('.slide-catalogo-stage img').forEach(function(img) {
+          if (img.complete) anchorContactShadow(img);
+        });
+      });
 
       // Aplicar clase de transición
       updateTransitionClass();
@@ -999,6 +1259,11 @@
         indicators[index].classList.add('active');
       }
 
+      // El slide de catalogo tiene el panel derecho claro: el reloj y los
+      // indicadores deben pasar a tinta oscura para seguir siendo legibles.
+      var activeSlide = state.slides[index];
+      document.body.classList.toggle('chrome-dark', !!(activeSlide && activeSlide.type === 'catalogo'));
+
       state.currentIndex = index;
     }
 
@@ -1045,34 +1310,24 @@
     /* ==========================================================
        MONITOREO DE CONEXIÓN
        ========================================================== */
+    // Con conexion queda solo el punto; el texto aparece si algo anda mal.
+    function setConnectionState(online) {
+      state.isOnline = online;
+      document.getElementById('status-dot').classList.toggle('offline', !online);
+      document.getElementById('connection-status').classList.toggle('is-offline', !online);
+      document.getElementById('status-text').textContent = online ? 'Conectado' : 'Sin conexión';
+    }
+
     function monitorConnection() {
       var connRef = db.ref('.info/connected');
 
       connRef.on('value', function(snap) {
-        var dot = document.getElementById('status-dot');
-        var text = document.getElementById('status-text');
-
-        if (snap.val() === true) {
-          state.isOnline = true;
-          dot.classList.remove('offline');
-          text.textContent = 'Conectado';
-        } else {
-          state.isOnline = false;
-          dot.classList.add('offline');
-          text.textContent = 'Sin conexión';
-        }
+        setConnectionState(snap.val() === true);
       });
 
       // Fallback con navigator.onLine
-      window.addEventListener('online', function() {
-        document.getElementById('status-dot').classList.remove('offline');
-        document.getElementById('status-text').textContent = 'Conectado';
-      });
-
-      window.addEventListener('offline', function() {
-        document.getElementById('status-dot').classList.add('offline');
-        document.getElementById('status-text').textContent = 'Sin conexión';
-      });
+      window.addEventListener('online', function() { setConnectionState(true); });
+      window.addEventListener('offline', function() { setConnectionState(false); });
     }
 
     /* ==========================================================
@@ -1082,6 +1337,42 @@
       var div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+    }
+
+    // Separa el simbolo de moneda para poder componerlo a menor escala.
+    // Se usa funcion de reemplazo para que el "$" del reemplazo no se
+    // interprete como referencia de captura.
+    function formatPriceHtml(price) {
+      return escapeHtml(price).replace(/^\s*\$/, function() {
+        return '<span class="cur">$</span>';
+      });
+    }
+
+    // La imagen se dibuja con object-fit:contain, asi que su borde inferior
+    // real no coincide con el de su caja. Se calcula para pegarle la sombra
+    // de contacto; si algo falla, el CSS conserva valores de respaldo.
+    function anchorContactShadow(img) {
+      var stage = img.parentNode;
+      if (!stage || !stage.classList.contains('slide-catalogo-stage')) return;
+
+      var s = stage.getBoundingClientRect();
+      var i = img.getBoundingClientRect();
+      if (!i.height || !s.height) return;
+
+      // Distancia entre la base del escenario y la base real de la imagen.
+      // El pequeño descuento hace que la elipse se solape con el apoyo.
+      stage.style.setProperty('--shadow-bottom', Math.round(s.bottom - i.bottom - i.height * 0.025) + 'px');
+      stage.style.setProperty('--shadow-width', Math.round(i.width * 0.8) + 'px');
+    }
+
+    // Escala del precio segun su longitud, para que no desborde el panel.
+    function priceSizeClass(price) {
+      var len = String(price).replace(/[^\d.,]/g, '').length;
+      if (len <= 6) return 'is-xl';
+      if (len <= 7) return 'is-lg';
+      if (len <= 9) return 'is-md';
+      if (len <= 10) return 'is-sm';
+      return 'is-xs';
     }
 
     // Prevenir menú contextual y selección (modo kiosk)
