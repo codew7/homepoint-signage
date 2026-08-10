@@ -873,7 +873,7 @@
       timer: null,
       progressTimer: null,
       progressStart: 0,
-      screenId: new URLSearchParams(window.location.search).get('s') || 'default',
+      screenId: new URLSearchParams(window.location.search).get('s') || getSavedScreenId() || 'default',
       isOnline: true,
       transitionType: 'fade',      // fade | zoom | slide
       transitionSpeed: 1,           // segundos
@@ -885,6 +885,7 @@
        INICIALIZACIÓN
        ========================================================== */
     document.getElementById('screen-id-display').textContent = 'Pantalla: ' + state.screenId;
+    saveScreenId(state.screenId);
 
     firebase.initializeApp(FIREBASE_CONFIG);
     const auth = firebase.auth();
@@ -1307,6 +1308,20 @@
       } catch (e) { /* silenciar */ }
     }
 
+    // Recuerda la última pantalla elegida desde el menú, para que la próxima
+    // apertura sin ?s= en la URL vuelva a esa pantalla en vez de 'default'.
+    function getSavedScreenId() {
+      try {
+        return localStorage.getItem('signtv_selected_screen');
+      } catch (e) { return null; }
+    }
+
+    function saveScreenId(screenId) {
+      try {
+        localStorage.setItem('signtv_selected_screen', screenId);
+      } catch (e) { /* silenciar errores de cuota */ }
+    }
+
     /* ==========================================================
        MONITOREO DE CONEXIÓN
        ========================================================== */
@@ -1435,6 +1450,7 @@
           item.innerHTML = '<span class="dot"></span>' + escapeHtml(screenId);
           item.addEventListener('click', function() {
             if (screenId !== state.screenId) {
+              saveScreenId(screenId);
               var url = new URL(window.location.href);
               url.searchParams.set('s', screenId);
               window.location.href = url.toString();
