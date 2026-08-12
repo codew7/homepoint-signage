@@ -163,19 +163,12 @@
     /* Layout */
     .admin-layout {
       display: grid;
-      grid-template-columns: 1fr 380px;
+      grid-template-columns: 1fr;
       min-height: calc(100vh - 60px);
     }
 
     .admin-main {
       padding: 2rem;
-      overflow-y: auto;
-    }
-
-    .admin-sidebar {
-      background: var(--bg-card);
-      border-left: 1px solid var(--border);
-      padding: 1.5rem;
       overflow-y: auto;
     }
 
@@ -385,37 +378,6 @@
 
     .toggle.active::after { transform: translateX(20px); }
 
-    /* ========== VISTA PREVIA ========== */
-    .preview-frame {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16/9;
-      background: #000;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 2px solid var(--border);
-      margin-bottom: 1rem;
-    }
-
-    .preview-frame iframe {
-      width: 1920px;
-      height: 1080px;
-      border: none;
-      pointer-events: none;
-      transform-origin: top left;
-      transform: scale(var(--preview-scale, 1));
-    }
-
-    .preview-placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-dim);
-      font-size: 0.9rem;
-    }
-
     /* ========== HISTORIAL ========== */
     .history-item {
       padding: 0.7rem 0;
@@ -624,16 +586,6 @@
     .catalogo-preview-precio { color: var(--warning); font-weight: 700; font-size: 1rem; margin-top: 3px; }
 
     /* ========== RESPONSIVE ========== */
-    @media (max-width: 900px) {
-      .admin-layout {
-        grid-template-columns: 1fr;
-      }
-      .admin-sidebar {
-        border-left: none;
-        border-top: 1px solid var(--border);
-      }
-    }
-
     @media (max-width: 600px) {
       .admin-header { padding: 1rem; }
       .admin-main { padding: 1rem; }
@@ -803,23 +755,6 @@
           </div>
         </div>
       </main>
-
-      <!-- Sidebar -->
-      <aside class="admin-sidebar">
-        <!-- Vista previa -->
-        <div class="section">
-          <div class="section-title">Vista Previa</div>
-          <div class="preview-frame">
-            <iframe id="preview-iframe"></iframe>
-            <div class="preview-placeholder" id="preview-placeholder">
-              Sin contenido para previsualizar
-            </div>
-          </div>
-          <button class="btn btn-outline btn-sm btn-full" id="btn-refresh-preview">Actualizar vista previa</button>
-        </div>
-
-        <!-- Pantallas conectadas -->
-      </aside>
     </div>
   </div>
 
@@ -1075,7 +1010,6 @@
       loadConfig();
       loadHistory();
       setupEventListeners();
-      updatePreview();
     }
 
     function loadScreenList() {
@@ -1098,13 +1032,20 @@
     /* ==========================================================
        EVENT LISTENERS
        ========================================================== */
+    var eventListenersListos = false;
+
     function setupEventListeners() {
+      // initAdmin() se ejecuta en cada disparo de onAuthStateChanged (re-login,
+      // restauracion de sesion). Sin este guard los addEventListener se acumulan
+      // y un solo clic termina disparando N veces el mismo handler.
+      if (eventListenersListos) return;
+      eventListenersListos = true;
+
       // Selector de pantalla
       document.getElementById('target-screen').addEventListener('change', function() {
         currentScreen = this.value;
         loadSlides();
         loadConfig();
-        updatePreview();
       });
 
       // Agregar pantalla
@@ -1173,6 +1114,8 @@
         document.getElementById('image-upload-group').style.display = (isText || isCatalogo) ? 'none' : 'block';
         document.getElementById('price-group').style.display = isCatalogo ? 'none' : 'block';
         document.getElementById('catalogo-group').style.display = isCatalogo ? 'block' : 'none';
+        // Al entrar en modo catalogo, dejar el buscador usable desde cache (sin request)
+        if (isCatalogo) hidratarCatalogoDesdeCache(true);
         if (isCatalogo) {
           document.getElementById('slide-title').closest('.form-group').style.display = 'none';
           document.getElementById('slide-description').closest('.form-group').style.display = 'none';
@@ -1204,9 +1147,6 @@
 
       // Guardar edición
       document.getElementById('btn-save-edit').addEventListener('click', saveSlideEdit);
-
-      // Vista previa
-      document.getElementById('btn-refresh-preview').addEventListener('click', updatePreview);
 
       // Cerrar modales con clic fuera
       document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
@@ -1481,7 +1421,6 @@
       db.ref('screens/' + currentScreen + '/content').set(data)
         .then(function() {
           renderSlideList();
-          updatePreview();
         })
         .catch(function(err) {
           showToast('Error al guardar: ' + err.message, 'error');
@@ -1695,46 +1634,6 @@
     }
 
     /* ==========================================================
-       VISTA PREVIA
-       ========================================================== */
-    function updatePreview() {
-      var iframe = document.getElementById('preview-iframe');
-      var placeholder = document.getElementById('preview-placeholder');
-      var frame = document.querySelector('.preview-frame');
-
-      function applyScale() {
-        var w = frame.offsetWidth;
-        var scale = w / 1920;
-        frame.style.setProperty('--preview-scale', scale);
-      }
-
-      if (slides.length > 0) {
-        placeholder.style.display = 'none';
-        applyScale();
-        var previewUrl = 'cartelera.html?s=' + encodeURIComponent(currentScreen);
-        iframe.src = '';
-        setTimeout(function() { iframe.src = previewUrl; }, 50);
-      } else {
-        placeholder.style.display = 'flex';
-        iframe.src = '';
-      }
-    }
-
-    // Recalcular escala si cambia el tamaño del sidebar
-    (function() {
-      var ro = new ResizeObserver(function() {
-        var frame = document.querySelector('.preview-frame');
-        if (!frame) return;
-        var w = frame.offsetWidth;
-        frame.style.setProperty('--preview-scale', w / 1920);
-      });
-      document.addEventListener('DOMContentLoaded', function() {
-        var frame = document.querySelector('.preview-frame');
-        if (frame) ro.observe(frame);
-      });
-    })();
-
-    /* ==========================================================
        UTILIDADES
        ========================================================== */
     function clearForm() {
@@ -1774,12 +1673,26 @@
     var catalogoArticulos = [];
     var catalogoCargado = false;
 
+    // Cache local: evita repetir el GetValues completo en cada uso del panel.
+    var CATALOGO_CACHE_KEY = 'hp_catalogo_cache_v1';
+    var CATALOGO_CACHE_TTL = 10 * 60 * 1000;  // 10 min: pasado eso se revalida en 2do plano
+    var CATALOGO_MIN_REFETCH = 5000;          // corta el doble/triple clic en el boton
+    var CATALOGO_MAX_INTENTOS = 3;
+    var CATALOGO_TIMEOUT = 15000;
+
+    var catalogoFetchEnCurso = false;
+    var catalogoUltimaCargaOk = 0;
+    var catalogoCacheTs = 0;
+    var catalogoStatusBase = '';
+
     function initCatalogo() {
       var btnLoad = document.getElementById('btn-load-catalogo');
       var searchInput = document.getElementById('catalogo-search');
       var dropdown = document.getElementById('catalogo-dropdown');
 
-      btnLoad.addEventListener('click', loadCatalogoArticulos);
+      btnLoad.addEventListener('click', function() {
+        loadCatalogoArticulos({ forzar: true });
+      });
 
       searchInput.addEventListener('focus', function() {
         if (catalogoArticulos.length > 0) dropdown.classList.add('open');
@@ -1801,38 +1714,235 @@
           dropdown.classList.remove('open');
         }
       });
+
+      // Si hay cache de una sesion previa, dejar el buscador listo sin pegarle a la API
+      hidratarCatalogoDesdeCache(false);
     }
 
-    function loadCatalogoArticulos() {
+    function setCatalogoStatus(txt) {
+      catalogoStatusBase = txt;
+      document.getElementById('catalogo-status').textContent = txt;
+    }
+
+    /* ---------- Cache ---------- */
+    function cacheCatalogoFuente() {
+      return SHEETS_ID + '|' + SHEETS_RANGE;
+    }
+
+    function leerCacheCatalogo() {
+      try {
+        var raw = localStorage.getItem(CATALOGO_CACHE_KEY);
+        if (!raw) return null;
+        var obj = JSON.parse(raw);
+        if (!obj || !Array.isArray(obj.rows)) return null;
+        // Si cambio la planilla o el rango, la cache ya no sirve
+        if (obj.fuente !== cacheCatalogoFuente()) return null;
+        return obj;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function guardarCacheCatalogo(rows) {
+      try {
+        localStorage.setItem(CATALOGO_CACHE_KEY, JSON.stringify({
+          ts: Date.now(),
+          fuente: cacheCatalogoFuente(),
+          rows: rows
+        }));
+      } catch (e) {
+        // Cuota de localStorage llena: se sigue trabajando en memoria
+      }
+    }
+
+    function textoAntiguedadCache(ts) {
+      var min = Math.floor((Date.now() - ts) / 60000);
+      if (min < 1) return 'cache reciente';
+      if (min < 60) return 'cache de hace ' + min + ' min';
+      var hs = Math.floor(min / 60);
+      return 'cache de hace ' + hs + (hs === 1 ? ' hora' : ' horas');
+    }
+
+    function aplicarCatalogoRows(rows) {
+      catalogoArticulos = (rows || []).filter(function(item) {
+        return item && item[3];
+      });
+      catalogoCargado = true;
+      document.getElementById('catalogo-search').disabled = false;
+      renderCatalogoDropdown(catalogoArticulos.slice(0, 25));
+    }
+
+    // Carga la cache sin abrir el dropdown ni robar el foco.
+    // Con revalidar=true y datos vencidos, refresca en 2do plano (stale-while-revalidate).
+    function hidratarCatalogoDesdeCache(revalidar) {
+      if (!catalogoCargado) {
+        var cache = leerCacheCatalogo();
+        if (!cache) return false;
+
+        aplicarCatalogoRows(cache.rows);
+        catalogoCacheTs = cache.ts;
+        setCatalogoStatus(catalogoArticulos.length + ' articulos - ' + textoAntiguedadCache(cache.ts));
+      }
+
+      if (revalidar && catalogoCacheTs && (Date.now() - catalogoCacheTs) > CATALOGO_CACHE_TTL) {
+        loadCatalogoArticulos({ silencioso: true });
+      }
+      return true;
+    }
+
+    /* ---------- Acceso a la API ---------- */
+    function buildCatalogoUrl() {
+      return 'https://sheets.googleapis.com/v4/spreadsheets/' + encodeURIComponent(SHEETS_ID) +
+             '/values/' + encodeURIComponent(SHEETS_RANGE) +
+             '?fields=values&key=' + encodeURIComponent(SHEETS_API_KEY);
+    }
+
+    function mensajeErrorCatalogo(err) {
+      if (err && err.esTimeout) return 'tiempo de espera agotado';
+      switch (err && err.status) {
+        case 429: return 'limite de consultas alcanzado (429)';
+        case 403: return 'acceso denegado (403) - revisar API key';
+        case 404: return 'planilla no encontrada (404)';
+        case 400: return 'rango invalido (400)';
+      }
+      if (err && err.status >= 500) return 'error del servidor (' + err.status + ')';
+      return 'sin conexion con la API';
+    }
+
+    function errorTransitorio(err) {
+      if (!err) return false;
+      if (err.esTimeout) return true;
+      if (err.status === 429) return true;
+      if (err.status >= 500) return true;
+      return !err.status; // fallo de red
+    }
+
+    // fetch() NO rechaza ante 4xx/5xx: hay que inspeccionar r.ok y data.error,
+    // si no los errores de la API llegan como "0 articulos".
+    function fetchCatalogoRaw() {
+      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var abortado = false;
+      var timer = setTimeout(function() {
+        abortado = true;
+        if (ctrl) ctrl.abort();
+      }, CATALOGO_TIMEOUT);
+
+      return fetch(buildCatalogoUrl(), ctrl ? { signal: ctrl.signal } : undefined)
+        .then(function(r) {
+          return r.text().then(function(txt) {
+            var data = null;
+            try { data = txt ? JSON.parse(txt) : null; } catch (e) { /* respuesta no JSON */ }
+
+            if (!r.ok || (data && data.error)) {
+              var err = new Error('Sheets API error');
+              err.status = (data && data.error && data.error.code) || r.status;
+              err.apiMessage = (data && data.error && data.error.message) || ('HTTP ' + r.status);
+              throw err;
+            }
+            return (data && data.values) || [];
+          });
+        })
+        .catch(function(err) {
+          if (abortado) {
+            var e = new Error('timeout');
+            e.esTimeout = true;
+            throw e;
+          }
+          throw err;
+        })
+        .then(function(rows) {
+          clearTimeout(timer);
+          return rows;
+        }, function(err) {
+          clearTimeout(timer);
+          throw err;
+        });
+    }
+
+    function fetchCatalogoConReintentos(intento, silencioso) {
+      intento = intento || 1;
+      return fetchCatalogoRaw().catch(function(err) {
+        if (intento >= CATALOGO_MAX_INTENTOS || !errorTransitorio(err)) throw err;
+
+        // Backoff exponencial con jitter: evita que el reintento caiga otra vez
+        // dentro de la misma ventana de cuota.
+        var espera = Math.pow(2, intento - 1) * 1000 + Math.floor(Math.random() * 300);
+        if (!silencioso) {
+          document.getElementById('catalogo-status').textContent =
+            'Reintentando (' + (intento + 1) + '/' + CATALOGO_MAX_INTENTOS + ')...';
+        }
+        return new Promise(function(resolve) { setTimeout(resolve, espera); })
+          .then(function() { return fetchCatalogoConReintentos(intento + 1, silencioso); });
+      });
+    }
+
+    /**
+     * opts.forzar    -> clic explicito en el boton de recarga
+     * opts.silencioso -> revalidacion en 2do plano (sin foco, dropdown ni toast)
+     */
+    function loadCatalogoArticulos(opts) {
+      opts = opts || {};
+      var silencioso = !!opts.silencioso;
       var status = document.getElementById('catalogo-status');
       var btn = document.getElementById('btn-load-catalogo');
       var searchInput = document.getElementById('catalogo-search');
+      var dropdown = document.getElementById('catalogo-dropdown');
 
-      status.textContent = 'Cargando...';
-      btn.disabled = true;
+      // Guard de request en vuelo: N clics != N requests
+      if (catalogoFetchEnCurso) {
+        if (!silencioso) status.textContent = 'Cargando...';
+        return;
+      }
 
-      var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEETS_ID +
-                '/values/' + SHEETS_RANGE + '?key=' + SHEETS_API_KEY;
-
-      fetch(url)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          var rows = data.values || [];
-          catalogoArticulos = rows.filter(function(item) {
-            return item[3];
-          });
-          catalogoCargado = true;
-          status.textContent = catalogoArticulos.length + ' articulos';
-          btn.disabled = false;
-          searchInput.disabled = false;
-          searchInput.focus();
+      // Anti-martilleo: recien actualizado, se reusa lo que ya esta en memoria
+      if (catalogoCargado && catalogoUltimaCargaOk &&
+          (Date.now() - catalogoUltimaCargaOk) < CATALOGO_MIN_REFETCH) {
+        if (!silencioso) {
+          setCatalogoStatus(catalogoArticulos.length + ' articulos - actualizado recien');
           renderCatalogoDropdown(catalogoArticulos.slice(0, 25));
-          document.getElementById('catalogo-dropdown').classList.add('open');
+          dropdown.classList.add('open');
+        }
+        return;
+      }
+
+      catalogoFetchEnCurso = true;
+      if (!silencioso) {
+        status.textContent = 'Cargando...';
+        btn.disabled = true;
+      }
+
+      function finalizar() {
+        catalogoFetchEnCurso = false;
+        btn.disabled = false;
+      }
+
+      fetchCatalogoConReintentos(1, silencioso)
+        .then(function(rows) {
+          aplicarCatalogoRows(rows);
+          guardarCacheCatalogo(rows);
+          catalogoUltimaCargaOk = Date.now();
+          catalogoCacheTs = catalogoUltimaCargaOk;
+          setCatalogoStatus(catalogoArticulos.length + ' articulos');
+          finalizar();
+
+          if (!silencioso) {
+            searchInput.focus();
+            dropdown.classList.add('open');
+          }
         })
-        .catch(function() {
-          status.textContent = 'Error al cargar';
-          btn.disabled = false;
-          showToast('No se pudo cargar el catalogo', 'error');
+        .catch(function(err) {
+          finalizar();
+          var msg = mensajeErrorCatalogo(err);
+          console.error('[catalogo] Sheets API:', (err && err.status) || '-', (err && (err.apiMessage || err.message)) || err);
+
+          if (catalogoCargado) {
+            // Se conserva la lista en memoria/cache: el usuario puede seguir trabajando
+            setCatalogoStatus(catalogoArticulos.length + ' articulos - sin actualizar (' + msg + ')');
+            if (!silencioso) showToast('No se pudo actualizar el catalogo: ' + msg + '. Se mantiene la lista anterior.', 'error');
+          } else {
+            setCatalogoStatus('Error: ' + msg);
+            if (!silencioso) showToast('No se pudo cargar el catalogo: ' + msg, 'error');
+          }
         });
     }
 
@@ -1915,7 +2025,7 @@
     // Comprueba la imagen primaria y, si falla, sustituye por el 4to link
     function verificarImagenCatalogo(nombre, imgPrimaria, imgFallback) {
       var status = document.getElementById('catalogo-status');
-      var statusPrevio = catalogoCargado ? catalogoArticulos.length + ' articulos' : '';
+      var statusPrevio = catalogoStatusBase;
       status.textContent = 'Verificando imagen...';
 
       checkImagenCarga(imgPrimaria, function(ok) {
