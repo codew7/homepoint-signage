@@ -34,6 +34,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Manages multiple screens independently
 - Stores change history
 
+### Modo LED (`led.html`)
+- Reproductor aparte para carteles LED alimentados por una consola que hace el split por coordenadas
+- Dibuja en un `<canvas>` de 384×512 px: imagen A en (0,0) 256×512 e imagen B en (256,0) 128×256; el resto en negro
+- El tamaño CSS del canvas es `384/devicePixelRatio`, para que cada píxel caiga 1:1 en un píxel físico aunque haya escalado de Windows o zoom. No posicionar con px CSS.
+- Datos: `screens/{screenId}/led` → `{ pairs: [{title, imageA, imageB, duration, active, createdAt}], updatedAt }`. Rotan con corte seco.
+- Admin: vista propia "Pantallas LED", separada de la cartelera por el selector "Cartelera | Pantallas LED" del header (se recuerda en `hp_admin_view` y en `#led`/`#cartelera`). Comparte el selector de pantalla y el historial; "Configuración" se oculta porque no aplica. Las imágenes se ajustan (cover centrado) a la medida exacta y se suben en PNG a `slides/led_*.png`
+- `?test=1` muestra el patrón de calibración (sin login); `?debug=1` muestra DPR y resolución fuera de la zona LED
+- Caché offline en `signtv_led_cache_{screenId}`
+- Al abrir (después del login, o enseguida con `?test=1`) muestra un selector de monitor físico con la Window Management API (`getScreenDetails()` + `requestFullscreen({ screen })`, solo Chrome/Edge, requiere permiso y clic del usuario). Sin la API, cae en "Esta pantalla". Última elección en `signtv_led_last_display`; al salir de fullscreen vuelve a preguntar
+
+### Admin: temas claro y oscuro
+- Tokens en `:root` (oscuro) y `:root[data-theme="light"]`. Las transparencias usan `rgba(var(--tint),a)` y la tinta `rgba(var(--ink-rgb),a)`: no escribir `rgba(255,255,255,...)` fijo, porque desaparece en el modo claro
+- Un script en `<head>` aplica el tema antes de pintar (`hp_admin_theme` en localStorage; sin elección, sigue al sistema). Selector sol/luna en el header y en el login
+- `.led-stage-wrap` redefine los tokens a oscuro: la vista a escala del LED representa la salida física
+
 ### Data Flow
 
 ```
@@ -60,6 +75,7 @@ screens/
 │   │   │   ├── 0: {type, title, description, imageUrl, price, duration, active, bgColor, textColor}
 │   │   │   └── ...
 │   │   └── updatedAt: timestamp
+│   ├── led/  (modo LED: pairs[], updatedAt)
 │   └── config/
 │       ├── transitionType, transitionSpeed, defaultDuration
 │       ├── primaryColor, bgColor
@@ -160,8 +176,9 @@ Production should restrict `.write` to authenticated users only:
 
 ## Files Structure
 
-- `cartelera.html` - ~900 lines, embedded CSS + JS, requester fullscreen on first user interaction
+- `index.html` - Reproductor (~1500 lines, embedded CSS + JS), requests fullscreen on first user interaction. `cartelera.html` was removed in commit 2a27298; older mentions of it in this file refer to `index.html`
 - `admin.html` - ~1500 lines, embedded CSS + JS
+- `led.html` - Reproductor LED (dos imágenes en posición fija de píxel)
 - `manifest.json` - PWA manifest with fullscreen display mode
 - `GUIA-CONFIGURACION.md` - Setup instructions
 - `CLAUDE.md` - This file

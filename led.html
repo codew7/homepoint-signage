@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <title>HomePoint - Salida LED</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #50d753;
+      --danger: #ff6b6b;
+      --font-sans: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    /* La consola LED toma la salida de video y la parte por coordenadas:
+       nada puede quedar dibujado fuera de las dos regiones salvo negro. */
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: var(--font-sans);
+      cursor: none;
+    }
+
+    /* El tamaño CSS lo fija fitCanvas() a partir de devicePixelRatio, para que
+       los 384x512 pixeles del canvas caigan 1:1 en pixeles fisicos. */
+    #led {
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    /* ========== LOGIN ========== */
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0B0B0C;
+      z-index: 1000;
+      cursor: auto;
+    }
+
+    #login-screen.hidden { display: none; }
+
+    .login-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      padding: 2.6rem 2.2rem;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .login-box .logo { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.3em; }
+    .login-box .logo span { color: var(--primary); }
+
+    .login-box .subtitle {
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 2rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.25);
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 0.7rem;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .login-box input:focus { border-color: var(--primary); }
+
+    .login-error {
+      color: var(--danger);
+      font-size: 0.82rem;
+      margin-bottom: 0.8rem;
+      display: none;
+    }
+
+    .login-btn {
+      width: 100%;
+      margin-top: 0.6rem;
+      padding: 14px;
+      background: var(--primary);
+      color: #08130A;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ========== DEBUG Y MENU (siempre fuera de la zona LED) ========== */
+    #debug-info {
+      position: fixed;
+      top: 16px;
+      font: 12px/1.6 Consolas, monospace;
+      color: rgba(255,255,255,0.7);
+      white-space: pre;
+      pointer-events: none;
+      display: none;
+    }
+
+    #screen-menu {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(20,20,20,0.95);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 0.6rem 0;
+      min-width: 200px;
+      z-index: 200;
+      display: none;
+      cursor: auto;
+    }
+
+    #screen-menu.visible { display: block; }
+
+    #screen-menu .menu-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.35);
+      padding: 0.3rem 1rem 0.6rem;
+    }
+
+    #screen-menu .menu-item {
+      padding: 0.7rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: rgba(255,255,255,0.85);
+    }
+
+    #screen-menu .menu-item:hover { background: rgba(255,255,255,0.08); }
+    #screen-menu .menu-item.current { color: var(--primary); }
+
+    /* ========== SELECTOR DE PANTALLA FISICA ========== */
+    #display-picker {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: #0B0B0C;
+      z-index: 900;
+      cursor: auto;
+      overflow-y: auto;
+    }
+
+    #display-picker.hidden { display: none; }
+
+    .picker-box {
+      width: 100%;
+      max-width: 620px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      padding: 2rem;
+    }
+
+    .picker-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.3em; }
+
+    .picker-sub {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 1.4rem;
+    }
+
+    /* Mapa de la disposicion de los monitores, como en la config de Windows */
+    #picker-map {
+      position: relative;
+      height: 130px;
+      margin-bottom: 1.2rem;
+    }
+
+
+    .map-screen {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.8);
+      cursor: pointer;
+    }
+
+    .map-screen:hover { border-color: var(--primary); color: var(--primary); }
+
+    #picker-list { display: grid; gap: 10px; }
+
+    .picker-item {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+      padding: 14px 16px;
+      text-align: left;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .picker-item:hover,
+    .picker-item:focus-visible { border-color: var(--primary); outline: none; }
+
+    .picker-num {
+      width: 40px; height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .picker-name { font-weight: 600; font-size: 0.95rem; }
+
+    .picker-meta {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    .picker-tag {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.75);
+      vertical-align: middle;
+    }
+
+    .picker-tag.last { background: rgba(80,215,83,0.18); color: var(--primary); }
+
+    .picker-note {
+      font-size: 0.82rem;
+      color: #f5c26b;
+      margin-top: 1rem;
+      line-height: 1.45;
+    }
+
+    .picker-note:empty { display: none; }
+
+    .picker-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.4rem;
+    }
+
+    .picker-actions button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: transparent;
+      color: rgba(255,255,255,0.8);
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .picker-actions button:hover { border-color: var(--primary); color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <!-- Login -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="logo">Home<span>Point</span></div>
+      <div class="subtitle">Salida LED</div>
+      <input type="email" id="login-email" placeholder="Correo electronico" autofocus>
+      <input type="password" id="login-password" placeholder="Contrasena">
+      <div class="login-error" id="login-error">Correo o contrasena incorrectos</div>
+      <button class="login-btn" id="login-btn">Ingresar</button>
+    </div>
+  </div>
+
+  <canvas id="led"></canvas>
+
+  <div id="debug-info"></div>
+
+  <!-- Selector de pantalla fisica: se muestra al abrir y al salir de pantalla completa -->
+  <div id="display-picker" class="hidden">
+    <div class="picker-box">
+      <div class="picker-title">¿En qué pantalla mostrar la salida LED?</div>
+      <div class="picker-sub" id="picker-sub">Detectando pantallas conectadas...</div>
+      <div id="picker-map"></div>
+      <div id="picker-list"></div>
+      <div class="picker-note" id="picker-note"></div>
+      <div class="picker-actions">
+        <button type="button" id="picker-detect">Volver a detectar</button>
+        <button type="button" id="picker-cancel">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-menu">
+    <div class="menu-title">Seleccionar pantalla</div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    /* ==========================================================
+       CONFIGURACIÓN FIREBASE
+       ========================================================== */
+    const FIREBASE_CONFIG = {
+        apiKey: "AIzaSyAKPOK_6OH8o25e4842kESQ2paWBrpQf8A",
+        authDomain: "homepoint-signage.firebaseapp.com",
+        databaseURL: "https://homepoint-signage-default-rtdb.firebaseio.com",
+        projectId: "homepoint-signage",
+        storageBucket: "homepoint-signage.firebasestorage.app",
+        messagingSenderId: "991071394856",
+        appId: "1:991071394856:web:02b266f05e24eff682291d"
+      };
+
+    /* ==========================================================
+       GEOMETRÍA DE LAS REGIONES LED (pixeles fisicos)
+       La consola parte la imagen por coordenadas: estos valores
+       tienen que coincidir con su configuracion.
+       ========================================================== */
+    const LED_REGIONS = {
+      a: { x: 0,   y: 0, w: 256, h: 512 },
+      b: { x: 256, y: 0, w: 128, h: 256 }
+    };
+    const LED_WIDTH = 384;
+    const LED_HEIGHT = 512;
+    const LED_DEFAULT_DURATION = 10;
+
+    /* ==========================================================
+       ESTADO
+       ========================================================== */
+    const params = new URLSearchParams(window.location.search);
+
+    const state = {
+      screenId: params.get('s') || 'default',
+      testMode: params.get('test') === '1',
+      debugMode: params.get('debug') === '1',
+      pairs: [],          // [{ imgA, imgB, duration, title }]
+      currentIndex: 0,
+      timer: null
+    };
+
+    const canvas = document.getElementById('led');
+    const ctx = canvas.getContext('2d');
+
+    /* ==========================================================
+       CANVAS 1:1 CON PIXELES FISICOS
+       Con escalado de Windows o zoom del navegador, 1px CSS deja de
+       ser 1px real. El canvas tiene siempre 384x512 pixeles propios y
+       su tamaño CSS se divide por devicePixelRatio para compensar.
+       ========================================================== */
+    function fitCanvas() {
+      var dpr = window.devicePixelRatio || 1;
+      canvas.width = LED_WIDTH;
+      canvas.height = LED_HEIGHT;
+      canvas.style.width = (LED_WIDTH / dpr) + 'px';
+      canvas.style.height = (LED_HEIGHT / dpr) + 'px';
+      ctx.imageSmoothingEnabled = false;
+      draw();
+      updateDebug();
+    }
+
+    // matchMedia de resolucion detecta cambios de DPR (zoom, mover la
+    // ventana a otro monitor) que no siempre disparan 'resize'.
+    function watchDpr() {
+      var mq = window.matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+      var onChange = function() {
+        if (mq.removeEventListener) mq.removeEventListener('change', onChange);
+        else mq.removeListener(onChange);
+        fitCanvas();
+        watchDpr();
+      };
+      if (mq.addEventListener) mq.addEventListener('change', onChange);
+      else mq.addListener(onChange);
+    }
+
+    window.addEventListener('resize', fitCanvas);
+
+    /* ==========================================================
+       DIBUJO
+       ========================================================== */
+    function draw() {
+      ctx.clearRect(0, 0, LED_WIDTH, LED_HEIGHT);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, LED_WIDTH, LED_HEIGHT);
+
+      if (state.testMode) {
+        drawTestPattern();
+        return;
+      }
+
+      var pair = state.pairs[state.currentIndex];
+      if (!pair) return;
+      drawRegion(pair.imgA, LED_REGIONS.a);
+      drawRegion(pair.imgB, LED_REGIONS.b);
+    }
+
+    // Si la imagen no cargo (o fallo) la region queda en negro;
+    // la otra se dibuja igual.
+    function drawRegion(img, r) {
+      if (img && img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, r.x, r.y, r.w, r.h);
+      }
+    }
+
+    // Patron de calibracion: bordes de 1px, cuadricula cada 32px y rotulos.
+    // Sirve para verificar en la consola que el split coincide.
+    function drawTestPattern() {
+      drawTestRegion(LED_REGIONS.a, '#1e3a8a', '#60a5fa', 'A');
+      drawTestRegion(LED_REGIONS.b, '#7c2d12', '#fb923c', 'B');
+    }
+
+    function drawTestRegion(r, fill, line, label) {
+      ctx.fillStyle = fill;
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      for (var gx = 32; gx < r.w; gx += 32) ctx.fillRect(r.x + gx, r.y, 1, r.h);
+      for (var gy = 32; gy < r.h; gy += 32) ctx.fillRect(r.x, r.y + gy, r.w, 1);
+
+      // Borde exacto de 1px sobre el primer y ultimo pixel de la region
+      ctx.fillStyle = line;
+      ctx.fillRect(r.x, r.y, r.w, 1);
+      ctx.fillRect(r.x, r.y + r.h - 1, r.w, 1);
+      ctx.fillRect(r.x, r.y, 1, r.h);
+      ctx.fillRect(r.x + r.w - 1, r.y, 1, r.h);
+
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 40px sans-serif';
+      ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2 - 14);
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText(r.w + '×' + r.h, r.x + r.w / 2, r.y + r.h / 2 + 16);
+      ctx.fillText('(' + r.x + ',' + r.y + ')', r.x + r.w / 2, r.y + r.h / 2 + 34);
+    }
+
+    function updateDebug() {
+      if (!state.debugMode) return;
+      var el = document.getElementById('debug-info');
+      var dpr = window.devicePixelRatio || 1;
+      var pair = state.pairs[state.currentIndex];
+      el.style.display = 'block';
+      el.style.left = (LED_WIDTH / dpr + 16) + 'px';
+      el.textContent =
+        'Pantalla: ' + state.screenId + '\n' +
+        'devicePixelRatio: ' + dpr + '\n' +
+        'Ventana CSS: ' + window.innerWidth + '×' + window.innerHeight + '\n' +
+        'Ventana real: ' + Math.round(window.innerWidth * dpr) + '×' + Math.round(window.innerHeight * dpr) + '\n' +
+        'Canvas CSS: ' + (LED_WIDTH / dpr).toFixed(2) + '×' + (LED_HEIGHT / dpr).toFixed(2) + '\n' +
+        'Pares activos: ' + state.pairs.length + '\n' +
+        'Par actual: ' + (pair ? (state.currentIndex + 1) + ' ' + (pair.title || '') : '-');
+    }
+
+    /* ==========================================================
+       CONTENIDO
+       ========================================================== */
+    function handleLedUpdate(data) {
+      var list = data && data.pairs
+        ? (Array.isArray(data.pairs) ? data.pairs : Object.values(data.pairs))
+        : [];
+
+      state.pairs = list
+        .filter(function(p) { return p && p.active !== false && (p.imageA || p.imageB); })
+        .map(function(p) {
+          return {
+            imgA: loadImage(p.imageA),
+            imgB: loadImage(p.imageB),
+            duration: p.duration || LED_DEFAULT_DURATION,
+            title: p.title || ''
+          };
+        });
+
+      saveToCache(data);
+      state.currentIndex = 0;
+      startRotation();
+    }
+
+    // Sin crossOrigin: el canvas solo muestra, nunca se leen sus pixeles,
+    // y pedir CORS haria fallar las URLs de Storage si el bucket no lo tiene.
+    function loadImage(url) {
+      if (!url) return null;
+      var img = new Image();
+      img.decoding = 'async';
+      img.onload = function() {
+        // Si la imagen pertenece al par visible, redibujar al terminar de cargar
+        var pair = state.pairs[state.currentIndex];
+        if (pair && (pair.imgA === img || pair.imgB === img)) draw();
+      };
+      img.src = url;
+      return img;
+    }
+
+    /* ==========================================================
+       ROTACIÓN (corte seco, sin transicion: un fundido mezclaria
+       las dos regiones en el LED)
+       ========================================================== */
+    function startRotation() {
+      if (state.timer) clearTimeout(state.timer);
+      draw();
+      updateDebug();
+      if (state.pairs.length > 1) scheduleNext();
+    }
+
+    function scheduleNext() {
+      var pair = state.pairs[state.currentIndex];
+      var ms = ((pair && pair.duration) || LED_DEFAULT_DURATION) * 1000;
+      state.timer = setTimeout(function() {
+        state.currentIndex = (state.currentIndex + 1) % state.pairs.length;
+        draw();
+        updateDebug();
+        scheduleNext();
+      }, ms);
+    }
+
+    /* ==========================================================
+       CACHÉ LOCAL (localStorage)
+       ========================================================== */
+    function saveToCache(data) {
+      try {
+        localStorage.setItem('signtv_led_cache_' + state.screenId, JSON.stringify(data || {}));
+      } catch (e) { /* silenciar errores de cuota */ }
+    }
+
+    function loadFromCache() {
+      try {
+        var cached = localStorage.getItem('signtv_led_cache_' + state.screenId);
+        if (cached) handleLedUpdate(JSON.parse(cached));
+      } catch (e) { /* silenciar */ }
+    }
+
+    /* ==========================================================
+       INICIALIZACIÓN
+       ========================================================== */
+    fitCanvas();
+    watchDpr();
+
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    if (state.testMode) {
+      // El patron de prueba no necesita sesion ni datos
+      document.getElementById('login-screen').classList.add('hidden');
+      showDisplayPicker();
+    } else {
+      auth.onAuthStateChanged(function(user) {
+        if (user) {
+          document.getElementById('login-screen').classList.add('hidden');
+          // El login va primero, en la pantalla donde se abrio el archivo;
+          // recien despues se elige el monitor de salida.
+          if (!document.fullscreenElement) showDisplayPicker();
+          loadFromCache();
+          db.ref('screens/' + state.screenId + '/led').on('value', function(snapshot) {
+            handleLedUpdate(snapshot.val());
+          }, function(error) {
+            console.error('Error Firebase:', error);
+          });
+        } else {
+          document.getElementById('login-screen').classList.remove('hidden');
+        }
+      });
+    }
+
+    document.getElementById('login-btn').addEventListener('click', doLogin);
+    document.getElementById('login-password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    function doLogin() {
+      var email = document.getElementById('login-email').value.trim();
+      var pwd = document.getElementById('login-password').value;
+      var errorEl = document.getElementById('login-error');
+      var btn = document.getElementById('login-btn');
+
+      errorEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Ingresando...';
+
+      auth.signInWithEmailAndPassword(email, pwd)
+        .catch(function() {
+          errorEl.style.display = 'block';
+          document.getElementById('login-password').value = '';
+          document.getElementById('login-password').focus();
+        })
+        .finally(function() {
+          btn.disabled = false;
+          btn.textContent = 'Ingresar';
+        });
+    }
+
+    function escapeHtml(text) {
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Prevenir menú contextual y selección (modo kiosk)
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+
+    /* ==========================================================
+       SELECCIÓN DE PANTALLA FÍSICA + PANTALLA COMPLETA
+       Window Management API (Chrome/Edge): getScreenDetails() lista los
+       monitores y requestFullscreen({ screen }) abre la ventana a pantalla
+       completa en el elegido. El navegador exige un clic del usuario para
+       pasar a pantalla completa, por eso se pregunta en vez de abrir solo.
+       Sin la API (Firefox, Safari, permiso denegado) queda "Esta pantalla":
+       se arrastra la ventana al monitor y se elige ahi.
+       ========================================================== */
+    var LAST_SCREEN_KEY = 'signtv_led_last_display';
+    var screenDetails = null;
+
+    function showDisplayPicker() {
+      document.getElementById('display-picker').classList.remove('hidden');
+      detectScreens();
+    }
+
+    function hideDisplayPicker() {
+      document.getElementById('display-picker').classList.add('hidden');
+    }
+
+    function detectScreens() {
+      if (!('getScreenDetails' in window)) {
+        renderPicker(null, 'Este navegador no permite elegir el monitor automáticamente (usa Chrome o Edge). ' +
+          'Arrastra esta ventana a la pantalla deseada y elige "Esta pantalla".');
+        return;
+      }
+
+      window.getScreenDetails()
+        .then(function(details) {
+          if (!screenDetails) {
+            // Si se conecta o desconecta un monitor con el selector abierto
+            details.addEventListener('screenschange', function() { renderPicker(details); });
+          }
+          screenDetails = details;
+          renderPicker(details);
+        })
+        .catch(function() {
+          renderPicker(null, 'No hay permiso para ver las pantallas conectadas. Pulsa "Volver a detectar" y acepta ' +
+            'el permiso de administración de ventanas (o habilítalo en el candado de la barra de direcciones).');
+        });
+    }
+
+    function screenKey(s) {
+      return (s.label || '') + '@' + (s.left || 0) + ',' + (s.top || 0);
+    }
+
+    function getLastScreenKey() {
+      try { return localStorage.getItem(LAST_SCREEN_KEY); } catch (e) { return null; }
+    }
+
+    function renderPicker(details, note) {
+      var list = document.getElementById('picker-list');
+      var map = document.getElementById('picker-map');
+      var lastKey = getLastScreenKey();
+      list.innerHTML = '';
+      map.innerHTML = '';
+      map.style.display = 'none';
+      document.getElementById('picker-note').textContent = note || '';
+
+      // Ordenadas de izquierda a derecha, igual que en la disposicion de Windows
+      var screens = details
+        ? details.screens.slice().sort(function(a, b) { return (a.left - b.left) || (a.top - b.top); })
+        : [null];
+
+      document.getElementById('picker-sub').textContent = details
+        ? screens.length + (screens.length === 1 ? ' pantalla detectada.' : ' pantallas detectadas.') + ' Elige dónde abrir la salida LED en pantalla completa.'
+        : 'Se usará la pantalla donde está esta ventana.';
+
+      screens.forEach(function(s, i) {
+        var num = i + 1;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'picker-item';
+
+        var name, meta, tags = '';
+        if (s) {
+          var dpr = s.devicePixelRatio || 1;
+          name = s.label || ('Pantalla ' + num);
+          meta = Math.round(s.width * dpr) + '×' + Math.round(s.height * dpr) + ' px' +
+                 (dpr !== 1 ? ' · escala ' + Math.round(dpr * 100) + '%' : '') +
+                 ' · posición (' + s.left + ', ' + s.top + ')';
+          if (s.isPrimary) tags += '<span class="picker-tag">Principal</span>';
+          if (details.currentScreen === s) tags += '<span class="picker-tag">Esta ventana</span>';
+          if (screenKey(s) === lastKey) tags += '<span class="picker-tag last">Última usada</span>';
+        } else {
+          var wdpr = window.devicePixelRatio || 1;
+          name = 'Esta pantalla';
+          meta = Math.round(screen.width * wdpr) + '×' + Math.round(screen.height * wdpr) + ' px';
+        }
+
+        btn.innerHTML =
+          '<span class="picker-num">' + num + '</span>' +
+          '<span><div class="picker-name">' + escapeHtml(name) + tags + '</div>' +
+          '<div class="picker-meta">' + meta + '</div></span>';
+        btn.addEventListener('click', function() { openOnScreen(s); });
+        list.appendChild(btn);
+      });
+
+      if (details && screens.length > 1) renderScreenMap(map, screens);
+
+      // Foco en la ultima usada: con Enter se repite la eleccion de siempre
+      var lastIndex = screens.findIndex(function(s) { return s && screenKey(s) === lastKey; });
+      var focusBtn = list.children[lastIndex >= 0 ? lastIndex : 0];
+      if (focusBtn) focusBtn.focus();
+    }
+
+    function renderScreenMap(map, screens) {
+      // Visible antes de medir: oculto, clientWidth da 0
+      map.style.display = 'block';
+      var minX = Math.min.apply(null, screens.map(function(s) { return s.left; }));
+      var minY = Math.min.apply(null, screens.map(function(s) { return s.top; }));
+      var maxX = Math.max.apply(null, screens.map(function(s) { return s.left + s.width; }));
+      var maxY = Math.max.apply(null, screens.map(function(s) { return s.top + s.height; }));
+      var scale = Math.min(map.clientWidth / (maxX - minX), map.clientHeight / (maxY - minY));
+      var offsetX = (map.clientWidth - (maxX - minX) * scale) / 2;
+
+      screens.forEach(function(s, i) {
+        var r = document.createElement('div');
+        r.className = 'map-screen';
+        r.textContent = i + 1;
+        r.title = s.label || ('Pantalla ' + (i + 1));
+        r.style.left = (offsetX + (s.left - minX) * scale + 2) + 'px';
+        r.style.top = ((s.top - minY) * scale + 2) + 'px';
+        r.style.width = Math.max(s.width * scale - 4, 12) + 'px';
+        r.style.height = Math.max(s.height * scale - 4, 12) + 'px';
+        r.addEventListener('click', function() { openOnScreen(s); });
+        map.appendChild(r);
+      });
+    }
+
+    // s = ScreenDetailed elegido, o null para "esta pantalla". Se ejecuta
+    // dentro del clic, que es la activacion que pide requestFullscreen.
+    function openOnScreen(s) {
+      var elem = document.documentElement;
+      var noteEl = document.getElementById('picker-note');
+
+      if (s) {
+        try { localStorage.setItem(LAST_SCREEN_KEY, screenKey(s)); } catch (e) { /* silenciar */ }
+      }
+
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen(s ? { screen: s } : undefined)
+          .then(function() {
+            hideDisplayPicker();
+            // Al cambiar de monitor puede cambiar la escala: recalcular el canvas
+            fitCanvas();
+          })
+          .catch(function(err) {
+            noteEl.textContent = 'No se pudo abrir en pantalla completa: ' + err.message;
+          });
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+        hideDisplayPicker();
+      } else {
+        noteEl.textContent = 'Este navegador no admite pantalla completa.';
+      }
+    }
+
+    // Si se sale de pantalla completa (Esc), volver a preguntar
+    document.addEventListener('fullscreenchange', function() {
+      if (document.fullscreenElement) return;
+      if (!document.getElementById('login-screen').classList.contains('hidden')) return;
+      showDisplayPicker();
+    });
+
+    document.getElementById('picker-detect').addEventListener('click', detectScreens);
+    document.getElementById('picker-cancel').addEventListener('click', hideDisplayPicker);
+
+    document.addEventListener('click', function(e) {
+      if (menuVisible && !e.target.closest('#screen-menu')) closeScreenMenu();
+    });
+
+    /* ==========================================================
+       MENÚ DE PANTALLAS: doble clic fuera de la zona LED
+       ========================================================== */
+    var menuVisible = false;
+
+    document.addEventListener('dblclick', function(e) {
+      if (state.testMode || e.target.closest('#login-screen') || e.target.closest('#screen-menu') ||
+          e.target.closest('#display-picker')) return;
+      var dpr = window.devicePixelRatio || 1;
+      if (e.clientX * dpr < LED_WIDTH && e.clientY * dpr < LED_HEIGHT) return;
+      openScreenMenu();
+    });
+
+    function openScreenMenu() {
+      var menu = document.getElementById('screen-menu');
+      menu.querySelectorAll('.menu-item').forEach(function(el) { el.remove(); });
+
+      db.ref('screens').once('value', function(snapshot) {
+        var data = snapshot.val();
+        if (!data) return;
+
+        Object.keys(data).sort().forEach(function(screenId) {
+          var item = document.createElement('div');
+          item.className = 'menu-item' + (screenId === state.screenId ? ' current' : '');
+          item.textContent = screenId;
+          item.addEventListener('click', function() {
+            if (screenId !== state.screenId) {
+              var url = new URL(window.location.href);
+              url.searchParams.set('s', screenId);
+              window.location.href = url.toString();
+            } else {
+              closeScreenMenu();
+            }
+          });
+          menu.appendChild(item);
+        });
+
+        menu.classList.add('visible');
+        menuVisible = true;
+      });
+    }
+
+    function closeScreenMenu() {
+      document.getElementById('screen-menu').classList.remove('visible');
+      menuVisible = false;
+    }
+  </script>
+</body>
+</html>

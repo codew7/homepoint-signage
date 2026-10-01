@@ -1,0 +1,21 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Imágenes de slides: lectura pública (las usa el reproductor),
+    // escritura solo para usuarios autenticados del panel admin.
+    match /slides/{fileName} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+                            && request.resource.size < 10 * 1024 * 1024
+                            && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null;
+    }
+
+    // Cualquier otra ruta: sin acceso.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

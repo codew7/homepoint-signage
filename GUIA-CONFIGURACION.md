@@ -74,6 +74,14 @@ En Firebase Console → Realtime Database → Reglas, pega:
 
 > **Nota de seguridad:** En producción, limita `.write` solo a IPs autorizadas o usa Firebase Auth.
 
+### Paso 7: Reglas de seguridad (Storage)
+En Firebase Console → Storage → Reglas, pega el contenido de `storage.rules`:
+
+- Solo usuarios autenticados pueden subir, reemplazar o borrar imágenes en `slides/`.
+- Solo se aceptan imágenes (`image/*`) de menos de 10 MB.
+- La lectura de `slides/` es pública para que el reproductor muestre las imágenes.
+- Cualquier otra ruta del bucket queda bloqueada.
+
 ---
 
 ## 2. Despliegue
@@ -242,3 +250,39 @@ var ADMIN_PASSWORD_PLAIN = 'homepoint2024'; // Cambiar en producción
 - **Duración:** 8-15 segundos por slide es ideal
 - **Transiciones:** "Fade" es la más elegante para la mayoría de contenidos
 - **Red:** Usa conexión cableada (Ethernet) en las pantallas para mayor estabilidad
+
+
+---
+
+## 9. Pantallas LED (dos imágenes en posición fija)
+
+Para carteles LED que reciben la señal a través de una consola que hace el split de la imagen.
+
+**Qué se dibuja** (en píxeles físicos, desde la esquina superior izquierda):
+
+| Imagen | Posición | Tamaño |
+|--------|----------|--------|
+| A | (0, 0) | 256 × 512 px |
+| B | (256, 0) | 128 × 256 px |
+
+El resto de la pantalla queda en negro: sin reloj, indicadores ni barra de progreso.
+
+**Cargar contenido:**
+1. En `admin.html`, elige la pantalla en el selector (o crea una con **+ Pantalla**, por ejemplo `led1`)
+2. En el header, cambia a **Pantallas LED** (al lado del logo). En el recuadro **Nuevo par**, las zonas A y B están dibujadas con la geometría real de la salida: haz clic o arrastra una imagen sobre cada una
+   - Si no miden exacto, se ajustan solas (se escalan para cubrir y se recorta el sobrante, centrado) y se guardan en PNG. Aparece un aviso con la medida original.
+3. Define la duración y pulsa **Agregar a la rotación**. A la derecha, la lista **En rotación** permite reordenar (flechas o arrastrando), activar/desactivar y eliminar pares, y muestra la duración total del ciclo. Los pares activos rotan con corte seco, sin transición.
+
+**Reproducir:** abre `led.html?s=led1` en el equipo conectado a la consola e inicia sesión. Aparece la pregunta **"¿En qué pantalla mostrar la salida LED?"** con los monitores detectados (nombre, resolución real, escala y un mapa de su disposición). Haz clic en la pantalla de la consola y la salida se abre ahí en pantalla completa.
+- La primera vez, Chrome/Edge pide el permiso **"Administrar ventanas en todas tus pantallas"**: hay que aceptarlo. Si se rechazó, se habilita desde el candado de la barra de direcciones y luego **Volver a detectar**.
+- La última pantalla elegida queda marcada como **Última usada** y con el foco, así que basta con pulsar Enter.
+- En Firefox o Safari (sin soporte) solo aparece **Esta pantalla**: arrastra la ventana al monitor y elígela.
+- Si sales de pantalla completa (Esc), el selector vuelve a aparecer.
+- El navegador exige un clic para pasar a pantalla completa, por eso siempre se pregunta y no se abre solo.
+
+**Calibrar:**
+- `led.html?s=led1&test=1` muestra un patrón (A azul, B naranja, borde de 1 px y cuadrícula cada 32 px) para ajustar las regiones de la consola. No necesita login.
+- `led.html?s=led1&debug=1` muestra, fuera de la zona LED, el `devicePixelRatio` y la resolución real.
+- Las posiciones se respetan aunque Windows tenga escalado (125 %, 150 %) o el navegador tenga zoom: el reproductor compensa el `devicePixelRatio`. Aun así, conviene dejar escala 100 % y zoom 100 %.
+
+**Cambiar de pantalla:** doble clic fuera de la zona LED (a la derecha o abajo) abre el menú de pantallas.

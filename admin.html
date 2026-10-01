@@ -3,93 +3,353 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HomePoint - Panel Administrativo</title>
+  <meta name="theme-color" content="#0A0A0B">
+  <title>HomePoint Studio - Panel Administrativo</title>
+  <script>
+    // Aplica el tema antes de pintar para que no destelle el equivocado
+    (function() {
+      var t = null;
+      try { t = localStorage.getItem('hp_admin_theme'); } catch (e) { /* sin storage */ }
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
   <style>
-    /* ========== RESET & VARIABLES ========== */
+    /* ==========================================================
+       HOMEPOINT STUDIO
+       Consola de control: carbon, tinta hueso y verde señal, la misma
+       identidad que el reproductor. El verde se reserva para acciones
+       primarias y estados activos; todo lo demas es neutro.
+       ========================================================== */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
+      color-scheme: dark;
+
+      /* Canales RGB: los blancos translucidos del tema oscuro se
+         convierten en grises translucidos en el claro */
+      --tint: 255,255,255;
+      --ink-rgb: 244,243,241;
+
+      /* Superficies */
+      --canvas: #0A0A0B;
+      --surface: #121315;
+      --surface-2: #17181B;
+      --surface-3: #1E2024;
+      --hairline: rgba(var(--tint),0.065);
+      --hairline-strong: rgba(var(--tint),0.11);
+      --hairline-hover: rgba(var(--tint),0.2);
+
+      /* Tinta */
+      --ink: #F4F3F1;
+      --ink-2: rgba(var(--ink-rgb),0.62);
+      --ink-3: rgba(var(--ink-rgb),0.4);
+      --ink-4: rgba(var(--ink-rgb),0.22);
+
+      /* Señal */
       --primary: #50d753;
-      --primary-hover: #3db840;
-      --bg: #231f3b;
-      --bg-card: #1c1930;
-      --bg-input: #2c2938;
-      --border: #2a2a4a;
-      --text: #ffffff;
-      --text-dim: #8888aa;
-      --accent: #00d4aa;
-      --danger: #ff4444;
-      --warning: #ffaa00;
-      --success: #00cc66;
-      --radius: 12px;
-      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+      --primary-hover: #63e266;
+      --primary-soft: rgba(80,215,83,0.12);
+      --primary-ring: rgba(80,215,83,0.28);
+      --on-primary: #06140A;
+      --danger: #ff6b6b;
+      --danger-soft: rgba(255,107,107,0.1);
+      --warning: #f5c26b;
+
+      /* Nombres que usan el JS y los estilos inline */
+      --bg: var(--canvas);
+      --bg-card: var(--surface);
+      --bg-input: var(--surface-2);
+      --border: var(--hairline-strong);
+      --text: var(--ink);
+      --text-dim: var(--ink-2);
+      --accent: var(--primary);
+      --success: var(--primary);
+
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 0 rgba(var(--tint),0.03) inset, 0 12px 32px -12px rgba(0,0,0,0.6);
+      --shadow-pop: 0 24px 64px -16px rgba(0,0,0,0.75), 0 0 0 1px var(--hairline-strong);
+
+      --ease: cubic-bezier(.22,.61,.36,1);
+      --ease-sheet: cubic-bezier(.32,.72,0,1);
+
+      /* Materiales que cambian con el tema */
+      --surface-focus: #191B1E;
+      --sheen: rgba(255,255,255,0.025);
+      --login-bg: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+      --header-bg: rgba(10,10,11,0.72);
+      --sheet-header-bg: rgba(18,19,21,0.86);
+      --toast-bg: rgba(30,32,36,0.82);
+      --popover-bg: rgba(26,27,31,0.96);
+      --scrim: rgba(4,4,5,0.6);
+      --indicator-bg: #1E2024;
+      --indicator-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 1px 3px rgba(0,0,0,0.5);
+      --primary-ink: #50d753;
+      --danger-border: rgba(255,107,107,0.22);
+      --danger-ink: #ff8f8f;
+      --grain-opacity: 0.03;
+      --glow: rgba(80,215,83,0.055);
+
+      --font-sans: 'Manrope', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, ui-monospace, monospace;
+
+      --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+      --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8b7b5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    }
+
+    /* ========== TEMA CLARO ==========
+       Papel calido en vez de blanco puro, tarjetas blancas y sombras
+       suaves. El verde de marca no cambia; el texto verde se oscurece
+       para mantener contraste sobre fondo claro. */
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --tint: 20,22,26;
+      --ink-rgb: 22,23,26;
+
+      --canvas: #F4F3EF;
+      --surface: #FFFFFF;
+      --surface-2: #FAF9F7;
+      --surface-3: #EFEDE9;
+      --surface-focus: #FFFFFF;
+      --ink: #16171A;
+
+      --primary-hover: #46cc49;
+      --primary-soft: rgba(80,215,83,0.14);
+      --primary-ring: rgba(80,215,83,0.34);
+      --primary-ink: #178a2b;
+      --danger: #e5484d;
+      --danger-soft: rgba(229,72,77,0.08);
+      --danger-border: rgba(229,72,77,0.25);
+      --danger-ink: #cf3a3f;
+      --warning: #b7791f;
+
+      --sheen: rgba(255,255,255,0);
+      --login-bg: #FFFFFF;
+      --header-bg: rgba(244,243,239,0.78);
+      --sheet-header-bg: rgba(255,255,255,0.86);
+      --toast-bg: rgba(255,255,255,0.88);
+      --popover-bg: rgba(255,255,255,0.97);
+      --scrim: rgba(28,26,22,0.3);
+      --indicator-bg: #FFFFFF;
+      --indicator-shadow: 0 1px 2px rgba(16,18,20,0.14), 0 0 0 1px rgba(16,18,20,0.05);
+      --shadow: 0 1px 2px rgba(16,18,20,0.04), 0 10px 28px -14px rgba(16,18,20,0.16);
+      --shadow-pop: 0 28px 64px -18px rgba(16,18,20,0.3), 0 0 0 1px var(--hairline-strong);
+      --grain-opacity: 0.035;
+      --glow: rgba(80,215,83,0.09);
+    }
+
+    /* La vista a escala del LED representa la salida fisica: siempre oscura */
+    .led-stage-wrap {
+      --tint: 255,255,255;
+      --ink: #F4F3F1;
+      --ink-2: rgba(244,243,241,0.62);
+      --ink-3: rgba(244,243,241,0.4);
+      --ink-4: rgba(244,243,241,0.22);
+    }
+
+    /* Cambio de tema suave: un salto brusco de brillo molesta a la vista */
+    html.theme-anim *,
+    html.theme-anim *::before,
+    html.theme-anim *::after {
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, fill 0.3s ease, stroke 0.3s ease !important;
+    }
+
+    /* Selector de tema */
+    .theme-switch {
+      display: inline-flex;
+      padding: 2px;
+      gap: 2px;
+      background: rgba(var(--tint),0.035);
+      border: 1px solid var(--hairline);
+      border-radius: 10px;
+    }
+
+    .theme-switch button {
+      width: 30px; height: 28px;
+      display: grid;
+      place-items: center;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--ink-3);
+      cursor: pointer;
+      transition: background 0.2s var(--ease), color 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.1s var(--ease);
+    }
+
+    .theme-switch button:hover { color: var(--ink); }
+    .theme-switch button:active { transform: scale(0.92); }
+    .theme-switch button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--primary-ring); }
+
+    .theme-switch button[aria-checked="true"] {
+      background: var(--indicator-bg);
+      box-shadow: var(--indicator-shadow);
+      color: var(--ink);
+    }
+
+    .theme-switch .ico { width: 15px; height: 15px; }
+
+    .login-theme {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 2;
     }
 
     html { font-size: 16px; }
 
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      letter-spacing: 0.006em;
+      color: var(--ink);
       min-height: 100vh;
+      background:
+        radial-gradient(1100px 520px at 12% -12%, var(--glow), transparent 62%),
+        radial-gradient(900px 480px at 100% -8%, rgba(var(--tint),0.035), transparent 60%),
+        var(--canvas);
+      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Grano estatico: rompe el banding de los degradados oscuros */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: var(--grain);
+      opacity: var(--grain-opacity);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    ::selection { background: var(--primary-ring); color: var(--ink); }
+
+    code, .mono {
+      font-family: var(--font-mono);
+      font-feature-settings: 'zero' 0;
+    }
+
+    .ico {
+      width: 16px; height: 16px;
+      flex: none;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ========== MARCA ========== */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(160deg, #1b231c, #0d110e);
+      border: 1px solid rgba(80,215,83,0.32);
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+
+    .brand-mark::after {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      background: var(--primary);
+      box-shadow: 0 0 12px rgba(80,215,83,0.75);
+    }
+
+    .brand-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-name span {
+      color: var(--ink-3);
+      font-weight: 500;
+      margin-left: 2px;
     }
 
     /* ========== LOGIN ========== */
     #login-screen {
+      position: relative;
+      z-index: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 28px;
       min-height: 100vh;
-      padding: 20px;
+      padding: 24px 16px;
     }
 
     #login-screen.hidden { display: none; }
 
     .login-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 3rem 2.5rem;
       width: 100%;
-      max-width: 420px;
-      text-align: center;
-      box-shadow: var(--shadow);
+      max-width: 400px;
+      background: var(--login-bg);
+      border: 1px solid var(--hairline-strong);
+      border-radius: 20px;
+      padding: 36px 32px 32px;
+      box-shadow: var(--shadow-pop);
+      animation: rise 0.6s var(--ease-sheet) both;
     }
 
-    .login-box .logo {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 0.3em;
+    .login-box .brand { margin-bottom: 28px; }
+
+    .login-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.022em;
     }
 
-    .login-box .logo span { color: var(--primary); }
-
-    .login-box .subtitle {
-      color: var(--text-dim);
-      margin-bottom: 2rem;
-      font-size: 0.95rem;
+    .login-sub {
+      color: var(--ink-2);
+      margin: 6px 0 26px;
     }
 
-    .login-box input {
-      width: 100%;
-      padding: 14px 18px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--bg-input);
-      color: var(--text);
-      font-size: 1rem;
-      margin-bottom: 1rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .login-box input:focus { border-color: var(--primary); }
+    .login-box .form-group { margin-bottom: 14px; }
 
     .login-error {
-      color: var(--danger);
-      font-size: 0.85rem;
-      margin-bottom: 1rem;
       display: none;
+      align-items: center;
+      gap: 8px;
+      color: var(--danger);
+      background: var(--danger-soft);
+      border: 1px solid var(--danger-border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      font-size: 0.82rem;
+      margin-bottom: 14px;
+    }
+
+    .login-error[style*="block"] { display: flex !important; }
+
+    .login-foot {
+      font-size: 0.75rem;
+      color: var(--ink-4);
+      letter-spacing: 0.02em;
     }
 
     /* ========== BOTONES ========== */
@@ -98,161 +358,470 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
+      height: 40px;
+      padding: 0 16px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.875rem;
       font-weight: 600;
+      letter-spacing: 0.004em;
+      white-space: nowrap;
       cursor: pointer;
-      transition: all 0.2s;
       text-decoration: none;
-      color: white;
-    }
-
-    .btn-primary { background: var(--primary); }
-    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
-
-    .btn-success { background: var(--success); color: #000; }
-    .btn-success:hover { filter: brightness(1.1); }
-
-    .btn-danger { background: var(--danger); }
-    .btn-danger:hover { filter: brightness(1.1); }
-
-    .btn-outline {
+      color: var(--ink);
       background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
+      transition: background 0.15s var(--ease), border-color 0.15s var(--ease), color 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.1s var(--ease);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 
-    .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+    /* Respuesta en el instante de presionar, no al soltar */
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+
+    .btn:focus-visible,
+    .icon-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--primary-ring);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--on-primary);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 1px 2px rgba(0,0,0,0.45), 0 6px 18px -8px rgba(80,215,83,0.55);
+    }
+
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-outline,
+    .btn-secondary {
+      background: rgba(var(--tint),0.04);
+      border-color: var(--hairline-strong);
+    }
+
+    .btn-outline:hover,
+    .btn-secondary:hover {
+      background: rgba(var(--tint),0.075);
+      border-color: var(--hairline-hover);
+    }
+
+    .btn-ghost { color: var(--ink-2); }
+    .btn-ghost:hover { background: rgba(var(--tint),0.06); color: var(--ink); }
+
+    .btn-success { background: var(--primary); color: var(--on-primary); }
+
+    .btn-danger {
+      background: var(--danger-soft);
+      border-color: var(--danger-border);
+      color: var(--danger-ink);
+    }
+
+    .btn-danger:hover { background: var(--danger-soft); filter: saturate(1.4); }
+
+    .btn-sm { height: 34px; padding: 0 12px; font-size: 0.8125rem; border-radius: 9px; }
     .btn-full { width: 100%; }
 
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-    /* ========== PANEL ADMIN ========== */
-    #admin-panel { display: none; }
+    .icon-btn {
+      width: 32px; height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-3);
+      cursor: pointer;
+      transition: background 0.15s var(--ease), color 0.15s var(--ease), transform 0.1s var(--ease);
+    }
+
+    .icon-btn:hover { background: rgba(var(--tint),0.07); color: var(--ink); }
+    .icon-btn:active { transform: scale(0.92); }
+    .icon-btn.danger:hover { background: var(--danger-soft); color: var(--danger); }
+
+    /* ========== PANEL ========== */
+    #admin-panel { display: none; position: relative; z-index: 1; }
     #admin-panel.visible { display: block; }
 
-    /* Header */
+    /* Header: material translucido, el contenido pasa por debajo */
     .admin-header {
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 50;
-    }
-
-    .admin-header .logo {
-      font-size: 1.3rem;
-      font-weight: 800;
-    }
-
-    .admin-header .logo span { color: var(--primary); }
-
-    .admin-header .header-actions {
       display: flex;
-      gap: 10px;
       align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      height: 64px;
+      padding: 0 28px;
+      background: var(--header-bg);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border-bottom: 1px solid var(--hairline);
     }
 
-    /* Layout */
-    .admin-layout {
-      display: grid;
-      grid-template-columns: 1fr;
-      min-height: calc(100vh - 60px);
-    }
-
-    .admin-main {
-      padding: 2rem;
-      overflow-y: auto;
-    }
-
-    /* Sección */
-    .section {
-      margin-bottom: 2rem;
-    }
-
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
+    .header-brand {
       display: flex;
+      align-items: center;
+      gap: 20px;
+      min-width: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--hairline-strong);
+      margin: 0 6px;
+    }
+
+    /* Selector de espacio de trabajo con indicador deslizante */
+    .view-switch {
+      position: relative;
+      display: inline-flex;
+      padding: 3px;
+      background: rgba(var(--tint),0.035);
+      border: 1px solid var(--hairline);
+      border-radius: 11px;
+    }
+
+    .view-switch-indicator {
+      position: absolute;
+      top: 3px; bottom: 3px;
+      left: var(--x, 3px);
+      width: var(--w, 0);
+      border-radius: 8px;
+      background: var(--indicator-bg);
+      box-shadow: var(--indicator-shadow);
+      transition: left 0.38s var(--ease-sheet), width 0.38s var(--ease-sheet);
+    }
+
+    .view-switch button {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .section-title .badge {
-      background: var(--primary);
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
+      height: 32px;
+      padding: 0 14px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-3);
+      font-family: inherit;
+      font-size: 0.8125rem;
       font-weight: 600;
+      cursor: pointer;
+      transition: color 0.2s var(--ease);
     }
 
-    /* Cards */
+    .view-switch button:hover { color: var(--ink-2); }
+    .view-switch button.active { color: var(--ink); }
+    .view-switch button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--primary-ring); }
+
+    .view-switch .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.5;
+      transition: background 0.2s, opacity 0.2s, box-shadow 0.2s;
+    }
+
+    .view-switch button.active .dot {
+      background: var(--primary);
+      opacity: 1;
+      box-shadow: 0 0 8px rgba(80,215,83,0.7);
+    }
+
+    /* Selector de pantalla */
+    .screen-picker {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      height: 34px;
+      padding-left: 10px;
+      background: rgba(var(--tint),0.04);
+      border: 1px solid var(--hairline-strong);
+      border-radius: 9px;
+      transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+    }
+
+    .screen-picker:hover { border-color: var(--hairline-hover); background: rgba(var(--tint),0.07); }
+    .screen-picker:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); }
+
+    .screen-picker .ico { color: var(--ink-3); }
+
+    .screen-picker .prefix {
+      font-size: 0.75rem;
+      color: var(--ink-3);
+      margin: 0 6px 0 8px;
+    }
+
+    .screen-picker select {
+      appearance: none;
+      -webkit-appearance: none;
+      height: 100%;
+      padding: 0 30px 0 0;
+      border: none;
+      background: transparent var(--chevron) no-repeat right 10px center / 14px;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      max-width: 180px;
+    }
+
+    .screen-picker select option { background: var(--surface-2); color: var(--ink); }
+
+    /* ========== LAYOUT ========== */
+    .admin-layout { position: relative; }
+
+    .admin-main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 36px 32px 80px;
+    }
+
+    .view[hidden] { display: none; }
+
+    /* Entrada escalonada al mostrar cada vista */
+    .view > *,
+    .workspace-grid > * { animation: rise 0.5s var(--ease-sheet) both; }
+    .workspace-grid > :nth-child(1) { animation-delay: 0.05s; }
+    .workspace-grid > :nth-child(2) { animation-delay: 0.1s; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .page-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px 24px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 8px;
+    }
+
+    .page-head h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.028em;
+    }
+
+    .page-head .sub {
+      margin-top: 8px;
+      font-size: 0.875rem;
+      color: var(--ink-2);
+      max-width: 640px;
+    }
+
+    .page-head .sub code {
+      font-size: 0.78rem;
+      color: var(--ink);
+      background: rgba(var(--tint),0.06);
+      border: 1px solid var(--hairline);
+      padding: 1px 7px;
+      border-radius: 6px;
+    }
+
+    .page-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(340px, 440px) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ========== CARDS ========== */
     .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
+      position: relative;
+      background: linear-gradient(180deg, var(--sheen), transparent 120px), var(--surface);
+      border: 1px solid var(--hairline);
       border-radius: var(--radius);
-      padding: 1.5rem;
-      margin-bottom: 1rem;
+      padding: 22px;
       box-shadow: var(--shadow);
     }
 
-    /* ========== FORMULARIO DE SLIDE ========== */
-    .form-group {
-      margin-bottom: 1.2rem;
+    .card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 24px;
+      margin-bottom: 18px;
     }
 
-    .form-group label {
-      display: block;
-      font-size: 0.85rem;
+    .card-title .title {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .card-title .meta {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--ink-3);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 20px;
+      padding: 0 7px;
+      border-radius: 10px;
+      background: rgba(var(--tint),0.06);
+      border: 1px solid var(--hairline);
+      color: var(--ink-2);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+    }
+
+    .card-divider {
+      height: 1px;
+      background: var(--hairline);
+      margin: 20px -22px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .form-actions .btn-primary { flex: 1; }
+
+    /* ========== FORMULARIOS ========== */
+    .form-group { margin-bottom: 16px; }
+
+    .form-group > label,
+    .field-label {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 0.8125rem;
       font-weight: 600;
-      color: var(--text-dim);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      color: var(--ink-2);
+      margin-bottom: 7px;
+      letter-spacing: -0.003em;
+    }
+
+    .field-hint {
+      font-weight: 500;
+      color: var(--ink-4);
+      font-size: 0.75rem;
     }
 
     .form-group input,
     .form-group textarea,
-    .form-group select {
+    .form-group select,
+    .catalogo-search-wrap input {
       width: 100%;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--bg-input);
-      color: var(--text);
-      font-size: 0.95rem;
-      outline: none;
+      height: 42px;
+      padding: 0 13px;
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
+      background: var(--surface-2);
+      color: var(--ink);
       font-family: inherit;
-      transition: border-color 0.2s;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), background 0.15s var(--ease);
     }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder,
+    .catalogo-search-wrap input::placeholder { color: var(--ink-4); }
+
+    .form-group input:hover,
+    .form-group textarea:hover,
+    .form-group select:hover,
+    .catalogo-search-wrap input:hover:not(:disabled) { border-color: var(--hairline-hover); }
 
     .form-group input:focus,
     .form-group textarea:focus,
-    .form-group select:focus {
+    .form-group select:focus,
+    .catalogo-search-wrap input:focus {
       border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-ring);
+      background: var(--surface-focus);
     }
 
-    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group input:disabled,
+    .catalogo-search-wrap input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .form-group input[type="number"] {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+    }
+
+    .form-group select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 36px;
+      background-image: var(--chevron);
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 15px;
+      cursor: pointer;
+    }
+
+    .form-group select option { background: var(--surface-2); }
+
+    .form-group textarea {
+      height: auto;
+      min-height: 84px;
+      padding: 11px 13px;
+      line-height: 1.5;
+      resize: vertical;
+    }
 
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+      gap: 12px;
     }
 
     .form-row-3 {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 1rem;
+      gap: 12px;
     }
+
+    .sub-field { margin-top: 10px; }
 
     .color-input-wrap {
       display: flex;
@@ -260,55 +829,176 @@
       align-items: center;
     }
 
-    .color-input-wrap input[type="color"] {
+    .form-group .color-input-wrap input[type="color"] {
       width: 42px; height: 42px;
-      padding: 2px;
-      border-radius: 8px;
+      flex: none;
+      padding: 4px;
       cursor: pointer;
     }
 
-    .color-input-wrap input[type="text"] {
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
+    input[type="color"]::-moz-color-swatch { border: none; border-radius: 6px; }
+
+    .form-group .color-input-wrap input[type="text"] {
       flex: 1;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      text-transform: lowercase;
     }
 
-    /* ========== LISTA DE SLIDES ========== */
+    /* Interruptor (checkbox) */
+    .switch {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
+      background: var(--surface-2);
+      color: var(--ink) !important;
+      font-size: 0.875rem !important;
+      cursor: pointer;
+      margin: 0 !important;
+    }
+
+    .form-group .switch input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      position: relative;
+      flex: none;
+      width: 38px; height: 22px;
+      padding: 0;
+      border-radius: 11px;
+      border: none;
+      background: rgba(var(--tint),0.14);
+      cursor: pointer;
+      transition: background 0.25s var(--ease);
+    }
+
+    .form-group .switch input[type="checkbox"]::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+      transition: transform 0.3s var(--ease-sheet);
+    }
+
+    .form-group .switch input[type="checkbox"]:checked { background: var(--primary); }
+    .form-group .switch input[type="checkbox"]:checked::after { transform: translateX(16px); }
+    .form-group .switch input[type="checkbox"]:focus-visible { box-shadow: 0 0 0 3px var(--primary-ring); }
+
+    /* ========== UPLOAD ========== */
+    .upload-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 26px 20px;
+      border: 1.5px dashed rgba(var(--tint),0.13);
+      border-radius: 12px;
+      background: rgba(var(--tint),0.015);
+      text-align: center;
+      cursor: pointer;
+      color: var(--ink-2);
+      font-size: 0.8125rem;
+      transition: border-color 0.18s var(--ease), background 0.18s var(--ease), color 0.18s var(--ease);
+    }
+
+    .upload-area:hover,
+    .upload-area.dragover {
+      border-color: rgba(80,215,83,0.55);
+      background: rgba(80,215,83,0.04);
+      color: var(--ink);
+    }
+
+    .upload-area .icon {
+      width: 40px; height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(var(--tint),0.05);
+      border: 1px solid var(--hairline);
+      color: var(--ink-2);
+      margin-bottom: 6px;
+      transition: color 0.18s, background 0.18s;
+    }
+
+    .upload-area .icon .ico { width: 18px; height: 18px; }
+    .upload-area:hover .icon { color: var(--primary-ink); background: var(--primary-soft); }
+
+    .upload-area .hint {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      color: var(--ink-3);
+      margin-top: 2px;
+    }
+
+    .image-preview {
+      margin-top: 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--hairline-strong);
+      background: #000;
+    }
+
+    .image-preview img {
+      display: block;
+      width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+    }
+
+    /* ========== LISTAS (slides y pares LED) ========== */
     .slide-list {
       list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .slide-item {
       display: grid;
-      grid-template-columns: 80px 1fr auto;
-      gap: 1rem;
+      grid-template-columns: 80px minmax(0, 1fr) auto;
+      gap: 14px;
       align-items: center;
-      padding: 1rem;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 0.8rem;
+      padding: 10px 10px 10px 10px;
+      border: 1px solid transparent;
+      border-radius: 12px;
       cursor: grab;
-      transition: all 0.2s;
+      transition: background 0.15s var(--ease), border-color 0.15s var(--ease), opacity 0.2s;
     }
 
     .slide-item:hover {
-      border-color: var(--primary);
+      background: rgba(var(--tint),0.03);
+      border-color: var(--hairline);
     }
 
+    .slide-item:active { cursor: grabbing; }
+
     .slide-item.dragging {
-      opacity: 0.5;
-      border-color: var(--accent);
+      opacity: 0.4;
+      border-color: var(--primary);
+      border-style: dashed;
     }
 
     .slide-thumb {
-      width: 80px; height: 50px;
-      border-radius: 6px;
+      width: 80px; height: 45px;
+      border-radius: 8px;
       overflow: hidden;
-      background: var(--bg-card);
+      background: var(--surface-3);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.7rem;
-      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      letter-spacing: 0.06em;
+      color: var(--ink-3);
+      box-shadow: 0 0 0 1px var(--hairline-strong);
     }
 
     .slide-thumb img {
@@ -320,226 +1010,339 @@
 
     .slide-info .name {
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.875rem;
+      letter-spacing: -0.005em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .slide-info .meta {
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.71875rem;
+      color: var(--ink-3);
+      margin-top: 3px;
     }
 
-    .slide-actions {
-      display: flex;
+    .status {
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
     }
 
-    .icon-btn {
-      width: 36px; height: 36px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--text-dim);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      transition: all 0.2s;
-    }
-
-    .icon-btn:hover { border-color: var(--primary); color: var(--primary); }
-    .icon-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
-
-    /* Toggle de slide activo */
-    .toggle {
-      position: relative;
-      width: 44px; height: 24px;
-      border-radius: 12px;
-      background: var(--border);
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .toggle.active { background: var(--accent); }
-
-    .toggle::after {
+    .status::before {
       content: '';
-      position: absolute;
-      top: 3px; left: 3px;
-      width: 18px; height: 18px;
+      width: 6px; height: 6px;
       border-radius: 50%;
-      background: white;
-      transition: transform 0.2s;
+      background: currentColor;
     }
 
-    .toggle.active::after { transform: translateX(20px); }
+    .status.on { color: var(--primary-ink); }
+    .status.on::before { box-shadow: 0 0 6px rgba(80,215,83,0.7); }
+    .status.off { color: var(--ink-3); }
+    .status.off::before { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
+
+    .slide-actions {
+      display: flex;
+      gap: 2px;
+      opacity: 0.55;
+      transition: opacity 0.15s var(--ease);
+    }
+
+    .slide-item:hover .slide-actions,
+    .slide-item:focus-within .slide-actions { opacity: 1; }
+
+    @media (hover: none) {
+      .slide-actions { opacity: 1; }
+      .drag-hint { display: none; }
+    }
+
+    .slide-item.is-off .slide-thumb,
+    .slide-item.is-off .led-thumb,
+    .slide-item.is-off .name { opacity: 0.45; }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 44px 20px;
+      border: 1px dashed var(--hairline-strong);
+      border-radius: 12px;
+      color: var(--ink-3);
+    }
+
+    .empty-state .empty-icon {
+      width: 44px; height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(var(--tint),0.04);
+      border: 1px solid var(--hairline);
+      color: var(--ink-3);
+      margin-bottom: 14px;
+    }
+
+    .empty-state .empty-icon .ico { width: 20px; height: 20px; }
+
+    .empty-state .title {
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 0.9375rem;
+      margin-bottom: 4px;
+    }
+
+    .empty-state .text { font-size: 0.8125rem; max-width: 300px; }
 
     /* ========== HISTORIAL ========== */
+    #history-list { position: relative; }
+
     .history-item {
-      padding: 0.7rem 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
+      position: relative;
+      padding: 12px 0 12px 22px;
+      border-bottom: 1px solid var(--hairline);
+      font-size: 0.875rem;
     }
 
+    .history-item::before {
+      content: '';
+      position: absolute;
+      left: 3px; top: 19px;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--surface-3);
+      box-shadow: inset 0 0 0 1.5px var(--ink-3);
+    }
+
+    .history-item:first-child::before { background: var(--primary); box-shadow: 0 0 8px rgba(80,215,83,0.6); }
     .history-item:last-child { border: none; }
 
     .history-item .time {
-      color: var(--text-dim);
-      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--ink-3);
+      font-size: 0.71875rem;
+      margin-top: 3px;
     }
 
-    /* ========== SELECTOR DE PANTALLA TARGET ========== */
-    .screen-selector {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
-    }
-
-    .screen-tag {
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.2s;
-    }
-
-    .screen-tag.active {
-      background: var(--primary);
-      border-color: var(--primary);
-    }
-
-    /* ========== MODAL ========== */
+    /* ========== MODALES ========== */
+    /* Atenuar para enfocar: la hoja se materializa sobre el fondo empujado */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
-      display: none;
+      z-index: 200;
+      display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 200;
       padding: 20px;
+      background: var(--scrim);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.22s var(--ease), visibility 0s linear 0.22s;
     }
 
-    .modal-overlay.visible { display: flex; }
+    .modal-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.22s var(--ease), visibility 0s;
+    }
 
     .modal {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
       width: 100%;
-      max-width: 600px;
-      max-height: 80vh;
+      max-width: 560px;
+      max-height: min(86vh, 860px);
       overflow-y: auto;
-      box-shadow: var(--shadow);
+      padding: 0 28px 28px;
+      background: var(--surface);
+      border: 1px solid var(--hairline-strong);
+      border-radius: 20px;
+      box-shadow: var(--shadow-pop);
+      transform: translateY(10px) scale(0.98);
+      transition: transform 0.38s var(--ease-sheet);
+      overscroll-behavior: contain;
     }
 
+    .modal-overlay.visible .modal { transform: none; }
+
     .modal-header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1.5rem;
+      gap: 12px;
+      margin: 0 -28px 22px;
+      padding: 20px 20px 18px 28px;
+      background: var(--sheet-header-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--hairline);
     }
 
     .modal-header h2 {
-      font-size: 1.2rem;
+      font-size: 1.0625rem;
       font-weight: 700;
+      letter-spacing: -0.015em;
+    }
+
+    .modal-header .sub {
+      font-size: 0.78rem;
+      color: var(--ink-3);
+      margin-top: 2px;
     }
 
     .modal-close {
-      background: none;
+      width: 32px; height: 32px;
+      display: grid;
+      place-items: center;
       border: none;
-      color: var(--text-dim);
-      font-size: 1.5rem;
+      border-radius: 50%;
+      background: rgba(var(--tint),0.06);
+      color: var(--ink-2);
       cursor: pointer;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
     }
 
-    /* ========== NOTIFICACIÓN ========== */
+    .modal-close:hover { background: rgba(var(--tint),0.11); color: var(--ink); }
+    .modal-close:active { transform: scale(0.92); }
+
+    .modal-section-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin: 6px 0 12px;
+    }
+
+    .modal .btn-full { margin-top: 8px; height: 44px; }
+
+    /* ========== TOAST ========== */
+    /* Entra y sale por el mismo camino: desde abajo */
     .toast {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 14px 24px;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
+      left: 50%;
+      bottom: 28px;
       z-index: 300;
-      transform: translateY(100px);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      max-width: min(92vw, 520px);
+      padding: 11px 18px 11px 14px;
+      border-radius: 14px;
+      background: var(--toast-bg);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid var(--hairline-strong);
+      box-shadow: var(--shadow-pop);
+      color: var(--ink);
+      font-size: 0.84rem;
+      font-weight: 600;
+      transform: translate(-50%, 16px) scale(0.98);
       opacity: 0;
-      transition: all 0.3s;
+      pointer-events: none;
+      transition: transform 0.4s var(--ease-sheet), opacity 0.25s var(--ease);
+    }
+
+    .toast::before {
+      content: '';
+      flex: none;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 10px rgba(80,215,83,0.7);
     }
 
     .toast.visible {
-      transform: translateY(0);
+      transform: translate(-50%, 0);
       opacity: 1;
     }
 
-    .toast.success { background: var(--success); color: #000; }
-    .toast.error { background: var(--danger); color: white; }
+    .toast.error { border-color: var(--danger-border); }
+    .toast.error::before { background: var(--danger); box-shadow: 0 0 10px rgba(255,107,107,0.6); }
 
-    /* ========== UPLOAD AREA ========== */
-    .upload-area {
-      border: 2px dashed var(--border);
-      border-radius: 10px;
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: var(--text-dim);
+    /* ========== CATÁLOGO ========== */
+    .catalogo-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
-    .upload-area:hover,
-    .upload-area.dragover {
-      border-color: var(--primary);
-      color: var(--primary);
+    .catalogo-head .field-label { margin: 0; }
+
+    .catalogo-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .upload-area .icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .upload-area .hint { font-size: 0.8rem; margin-top: 0.5rem; }
+    #catalogo-status {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      color: var(--ink-3);
+    }
 
-    /* ========== BUSCADOR DE CATÁLOGO ========== */
     .catalogo-search-wrap { position: relative; }
+
+    .catalogo-search-wrap input { padding-left: 38px; }
+
+    .catalogo-search-wrap > .ico {
+      position: absolute;
+      left: 13px; top: 13px;
+      color: var(--ink-3);
+      pointer-events: none;
+    }
 
     .catalogo-dropdown {
       position: absolute;
-      top: calc(100% + 4px);
+      top: calc(100% + 6px);
       left: 0; right: 0;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      max-height: 240px;
-      overflow-y: auto;
       z-index: 100;
       display: none;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 4px;
+      background: var(--popover-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--hairline-strong);
+      border-radius: 12px;
+      box-shadow: var(--shadow-pop);
+      transform-origin: top center;
     }
 
-    .catalogo-dropdown.open { display: block; }
+    .catalogo-dropdown.open { display: block; animation: pop 0.18s var(--ease) both; }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(-4px) scale(0.985); }
+      to   { opacity: 1; transform: none; }
+    }
 
     .catalogo-option {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
+      gap: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
       cursor: pointer;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
+      transition: background 0.12s;
     }
 
-    .catalogo-option:hover { background: var(--bg-input); }
-    .catalogo-option:last-child { border-bottom: none; }
+    .catalogo-option:hover { background: rgba(var(--tint),0.06); }
 
     .catalogo-opt-img {
-      width: 42px; height: 42px;
-      border-radius: 6px;
+      width: 40px; height: 40px;
+      border-radius: 8px;
       overflow: hidden;
       background: #fff;
       flex-shrink: 0;
@@ -547,32 +1350,37 @@
     }
 
     .catalogo-opt-img img { width: 100%; height: 100%; object-fit: contain; }
-    .catalogo-opt-img span { font-size: 0.65rem; color: #aaa; }
+    .catalogo-opt-img span { font-size: 0.625rem; color: #999; font-family: var(--font-mono); }
 
     .catalogo-opt-info { min-width: 0; }
 
     .catalogo-opt-nombre {
-      font-size: 0.88rem; font-weight: 600;
+      font-size: 0.84rem; font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
-    .catalogo-opt-precio { font-size: 0.8rem; color: var(--primary); font-weight: 600; margin-top: 2px; }
+    .catalogo-opt-precio {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--primary-ink);
+      margin-top: 2px;
+    }
 
     .catalogo-preview-card {
       display: none;
       align-items: center;
       gap: 14px;
-      background: var(--bg-input);
-      border: 1px solid var(--primary);
-      border-radius: 10px;
-      padding: 12px 14px;
       margin-top: 10px;
+      padding: 12px;
+      background: rgba(80,215,83,0.05);
+      border: 1px solid rgba(80,215,83,0.28);
+      border-radius: 12px;
     }
 
-    .catalogo-preview-card.visible { display: flex; }
+    .catalogo-preview-card.visible { display: flex; animation: pop 0.2s var(--ease) both; }
 
     .catalogo-preview-img {
-      width: 60px; height: 60px;
+      width: 56px; height: 56px;
       border-radius: 8px;
       object-fit: contain;
       background: #fff;
@@ -582,192 +1390,571 @@
 
     .catalogo-preview-img.visible { display: block; }
 
-    .catalogo-preview-nombre { font-weight: 700; font-size: 0.95rem; }
-    .catalogo-preview-precio { color: var(--warning); font-weight: 700; font-size: 1rem; margin-top: 3px; }
+    .catalogo-preview-nombre { font-weight: 700; font-size: 0.9rem; letter-spacing: -0.01em; }
+
+    .catalogo-preview-precio {
+      font-family: var(--font-mono);
+      color: var(--primary-ink);
+      font-weight: 500;
+      font-size: 0.875rem;
+      margin-top: 3px;
+    }
+
+    /* ========== PANTALLAS LED ========== */
+    /* Escenario: replica la geometria real de la salida (384x512).
+       A y B se ubican en porcentajes de ese lienzo. */
+    .led-stage-wrap {
+      position: relative;
+      background: #000;
+      border: 1px solid var(--hairline-strong);
+      border-radius: 12px;
+      padding: 22px;
+      display: flex;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .led-stage-wrap::before {
+      content: '0,0';
+      position: absolute;
+      top: 6px; left: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      color: var(--ink-4);
+    }
+
+    .led-stage {
+      position: relative;
+      width: 100%;
+      max-width: 264px;
+      aspect-ratio: 384 / 512;
+      background-image:
+        linear-gradient(rgba(var(--tint),0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--tint),0.035) 1px, transparent 1px);
+      background-size: 8.333% 6.25%;
+      outline: 1px solid rgba(var(--tint),0.07);
+    }
+
+    .led-stage .unused {
+      position: absolute;
+      left: 66.667%; top: 50%;
+      width: 33.333%; height: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      color: var(--ink-4);
+      text-align: center;
+      line-height: 1.4;
+      pointer-events: none;
+    }
+
+    .led-slot {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px dashed rgba(var(--tint),0.24);
+      background: rgba(var(--tint),0.025);
+      cursor: pointer;
+      transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+    }
+
+    .led-slot[data-slot="a"] { left: 0; top: 0; width: 66.667%; height: 100%; }
+    .led-slot[data-slot="b"] { left: 66.667%; top: 0; width: 33.333%; height: 50%; }
+
+    .led-slot:hover,
+    .led-slot.dragover,
+    .led-slot:focus-visible {
+      border-color: var(--primary);
+      background: rgba(80,215,83,0.07);
+      outline: none;
+    }
+
+    .led-slot img {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      image-rendering: pixelated;
+      display: none;
+    }
+
+    .led-slot.has-image { border-style: solid; border-color: rgba(var(--tint),0.1); }
+    .led-slot.has-image img { display: block; }
+
+    .slot-label {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: var(--ink-3);
+      font-size: 0.6875rem;
+      line-height: 1.4;
+      padding: 6px 8px;
+      pointer-events: none;
+    }
+
+    .slot-label .letter {
+      display: block;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.1;
+      margin-bottom: 2px;
+    }
+
+    .led-slot[data-slot="b"] .slot-label .letter { font-size: 1.15rem; }
+
+    .slot-label .size { font-family: var(--font-mono); font-size: 0.65rem; }
+
+    .led-slot.has-image .slot-label {
+      opacity: 0;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(6px);
+      border-radius: 8px;
+      color: var(--ink);
+      transition: opacity 0.18s var(--ease);
+    }
+
+    .led-slot.has-image:hover .slot-label,
+    .led-slot.has-image.uploading .slot-label { opacity: 1; }
+
+    .led-stage-caption {
+      margin: 12px 0 20px;
+      font-size: 0.75rem;
+      color: var(--ink-3);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .led-thumb {
+      position: relative;
+      width: 34px; height: 45px;
+      background: #000;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px var(--hairline-strong);
+    }
+
+    /* Miniatura con la geometria real: A 256x512 y B 128x256 sobre 384x512 */
+    .led-thumb img { position: absolute; top: 0; display: block; image-rendering: pixelated; }
+    .led-thumb .a { left: 0; width: 66.667%; height: 100%; }
+    .led-thumb .b { left: 66.667%; width: 33.333%; height: 50%; }
+
+    #led-pair-list .slide-item { grid-template-columns: 34px minmax(0, 1fr) auto; }
+
+    .led-order {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: var(--ink-4);
+      margin-right: 8px;
+    }
+
+    /* ========== ACCESIBILIDAD ========== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
+      }
+      .modal, .toast, .view-switch-indicator { transition: opacity 0.2s ease !important; }
+      .modal { transform: none !important; }
+      .btn:active:not(:disabled), .icon-btn:active { transform: none; }
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+      .admin-header { background: var(--canvas); backdrop-filter: none; -webkit-backdrop-filter: none; }
+      .modal-header { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+      .toast { background: var(--surface-3); backdrop-filter: none; -webkit-backdrop-filter: none; }
+      .catalogo-dropdown { background: var(--surface-2); }
+    }
+
+    @media (prefers-contrast: more) {
+      :root {
+        --hairline: rgba(var(--tint),0.22);
+        --hairline-strong: rgba(var(--tint),0.32);
+        --ink-2: rgba(var(--ink-rgb),0.85);
+        --ink-3: rgba(var(--ink-rgb),0.7);
+      }
+    }
 
     /* ========== RESPONSIVE ========== */
-    @media (max-width: 600px) {
-      .admin-header { padding: 1rem; }
-      .admin-main { padding: 1rem; }
-      .form-row, .form-row-3 { grid-template-columns: 1fr; }
-      .slide-item { grid-template-columns: 60px 1fr auto; }
+    @media (max-width: 480px) {
+      .slide-item { grid-template-columns: 64px minmax(0, 1fr) !important; }
+      #led-pair-list .slide-item { grid-template-columns: 34px minmax(0, 1fr) !important; }
+      .slide-actions { grid-column: 1 / -1; justify-content: flex-end; opacity: 1; }
+    }
+
+    @media (max-width: 1080px) {
+      .header-actions .btn .label { display: none; }
+      .header-actions .btn { padding: 0 9px; }
+    }
+
+    @media (max-width: 960px) {
+      .workspace-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .admin-header {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 12px 16px;
+        row-gap: 10px;
+      }
+      .header-brand { width: 100%; justify-content: space-between; gap: 12px; }
+      .brand-name span { display: none; }
+      .header-actions { width: 100%; }
+      .screen-picker { flex: 1; }
+      .screen-picker select { max-width: none; flex: 1; }
+      .admin-main { padding: 24px 16px 64px; }
+      .page-head h1 { font-size: 1.625rem; }
+      .card { padding: 18px; }
+      .card-divider { margin: 18px -18px; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; gap: 0; }
+      .slide-thumb { width: 64px; height: 36px; }
+      .slide-item { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; }
+      .modal { padding: 0 20px 20px; border-radius: 18px; }
+      .modal-header { margin: 0 -20px 18px; padding: 16px 14px 14px 20px; }
+      .login-box { padding: 28px 22px 24px; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Iconos (trazo 1.75, se colorean con currentColor) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3M16 16l4-4-4-4M20 12H9"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="m4.5 18 5.5-5.5 3.5 3.5 2.5-2.5 4 4"/></symbol>
+    <symbol id="i-screen" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6.5 13.5 12 19l5.5-5.5"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.83 2.83 0 0 0-4-4L4 16v4zM13.5 6.5l4 4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M4 4l16 16M10.6 6.1c.46-.07.93-.1 1.4-.1 6 0 9.5 6 9.5 6a16.6 16.6 0 0 1-2.9 3.6M6.5 7.6C3.9 9.3 2.5 12 2.5 12S6 18.5 12 18.5c1.6 0 3-.45 4.2-1.1"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3.5 8.5 4.5-8.5 4.5L3.5 8z"/><path d="m3.5 12.5 8.5 4.5 8.5-4.5"/></symbol>
+    <symbol id="i-led" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="10" height="17" rx="1.5"/><rect x="15.5" y="3.5" width="5" height="8" rx="1.5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5.5v13l11-6.5z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
+  </svg>
+
   <!-- ============================== LOGIN ============================== -->
   <div id="login-screen">
-    <div class="login-box">
-      <div class="logo">Home<span>Point</span></div>
-      <div class="subtitle">Panel de Cartelera Digital</div>
-      <input type="email" id="login-email" placeholder="Correo electronico" autofocus>
-      <input type="password" id="login-password" placeholder="Contrasena" style="margin-top:0">
-      <div class="login-error" id="login-error">Correo o contrasena incorrectos</div>
-      <button class="btn btn-primary btn-full" id="login-btn">Ingresar</button>
+    <div class="login-theme">
+      <div class="theme-switch" role="radiogroup" aria-label="Tema">
+        <button type="button" role="radio" data-theme-choice="light" aria-checked="false" title="Modo claro" aria-label="Modo claro"><svg class="ico"><use href="#i-sun"/></svg></button>
+        <button type="button" role="radio" data-theme-choice="dark" aria-checked="false" title="Modo oscuro" aria-label="Modo oscuro"><svg class="ico"><use href="#i-moon"/></svg></button>
+      </div>
     </div>
+    <div class="login-box">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-name">HomePoint<span>Studio</span></span>
+      </div>
+      <h1 class="login-title">Bienvenido de nuevo</h1>
+      <p class="login-sub">Inicia sesion para administrar la cartelera de tus showrooms.</p>
+      <div class="form-group">
+        <label for="login-email">Correo electronico</label>
+        <input type="email" id="login-email" placeholder="nombre@empresa.com" autocomplete="username" autofocus>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Contrasena</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="login-error" id="login-error">Correo o contrasena incorrectos</div>
+      <button class="btn btn-primary btn-full" id="login-btn" style="height:44px">Ingresar</button>
+    </div>
+    <div class="login-foot">HomePoint &middot; Cartelera digital</div>
   </div>
 
   <!-- ============================== PANEL ADMIN ============================== -->
   <div id="admin-panel">
-    <!-- Header -->
     <header class="admin-header">
-      <div class="logo">Home<span>Point</span> Admin</div>
+      <div class="header-brand">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span class="brand-name">HomePoint<span>Studio</span></span>
+        </div>
+        <nav class="view-switch" role="tablist" aria-label="Espacio de trabajo">
+          <span class="view-switch-indicator" aria-hidden="true"></span>
+          <button type="button" role="tab" data-view="cartelera" class="active" aria-selected="true"><span class="dot"></span>Cartelera</button>
+          <button type="button" role="tab" data-view="led" aria-selected="false"><span class="dot"></span>Pantallas LED</button>
+        </nav>
+      </div>
       <div class="header-actions">
-        <select id="target-screen" class="btn btn-outline btn-sm" style="padding: 8px 12px; font-size: 0.85rem; background: var(--bg-input); color: var(--text); border-radius: 8px;">
-          <option value="default">Pantalla: default</option>
-        </select>
-        <button class="btn btn-outline btn-sm" id="btn-add-screen" title="Agregar pantalla">+ Pantalla</button>
-        <button class="btn btn-outline btn-sm" id="btn-config">Configuracion</button>
-        <button class="btn btn-outline btn-sm" id="btn-history">Historial</button>
-        <button class="btn btn-danger btn-sm" id="btn-logout">Salir</button>
+        <label class="screen-picker" title="Pantalla que estas editando">
+          <svg class="ico"><use href="#i-screen"/></svg>
+          <span class="prefix">Pantalla</span>
+          <select id="target-screen" aria-label="Pantalla">
+            <option value="default">default</option>
+          </select>
+        </label>
+        <button class="btn btn-ghost btn-sm" id="btn-add-screen" title="Agregar pantalla"><svg class="ico"><use href="#i-plus"/></svg><span class="label">Nueva</span></button>
+        <span class="header-sep"></span>
+        <button class="btn btn-ghost btn-sm" id="btn-config" title="Configuracion de la pantalla"><svg class="ico"><use href="#i-sliders"/></svg><span class="label">Configuracion</span></button>
+        <button class="btn btn-ghost btn-sm" id="btn-history" title="Historial de cambios"><svg class="ico"><use href="#i-clock"/></svg><span class="label">Historial</span></button>
+        <span class="header-sep"></span>
+        <div class="theme-switch" role="radiogroup" aria-label="Tema">
+          <button type="button" role="radio" data-theme-choice="light" aria-checked="false" title="Modo claro" aria-label="Modo claro"><svg class="ico"><use href="#i-sun"/></svg></button>
+          <button type="button" role="radio" data-theme-choice="dark" aria-checked="false" title="Modo oscuro" aria-label="Modo oscuro"><svg class="ico"><use href="#i-moon"/></svg></button>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-logout" title="Cerrar sesion"><svg class="ico"><use href="#i-logout"/></svg><span class="label">Salir</span></button>
       </div>
     </header>
 
     <div class="admin-layout">
-      <!-- Main content -->
       <main class="admin-main">
-        <!-- Agregar nuevo slide -->
-        <div class="section">
-          <div class="section-title">Agregar Slide</div>
-          <div class="card">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Tipo de Slide</label>
-                <select id="slide-type">
-                  <option value="image">Imagen con texto</option>
-                  <option value="text">Solo texto</option>
-                  <option value="catalogo">Catalogo</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Duracion (segundos)</label>
-                <input type="number" id="slide-duration" value="8" min="3" max="120">
-              </div>
+        <!-- ============================== VISTA: CARTELERA ============================== -->
+        <section class="view" id="view-cartelera">
+          <div class="page-head">
+            <div>
+              <div class="page-eyebrow"><svg class="ico"><use href="#i-layers"/></svg>Cartelera</div>
+              <h1>Slides en pantalla</h1>
+              <div class="sub">Contenido del reproductor de <code id="cartelera-screen-name">default</code>. Los cambios se publican en vivo.</div>
             </div>
-
-            <!-- Imagen -->
-            <div class="form-group" id="image-upload-group">
-              <label>Imagen</label>
-              <div class="upload-area" id="upload-area">
-                <div class="icon">&#128247;</div>
-                <div>Arrastra una imagen o haz clic para seleccionar</div>
-                <div class="hint">JPG, PNG, WebP - Max 5MB</div>
-              </div>
-              <input type="file" id="image-file" accept="image/*" style="display:none">
-              <div style="margin-top:8px">
-                <label style="font-size:0.8rem; text-transform:none; color:var(--text-dim)">O ingresa URL directa:</label>
-                <input type="url" id="slide-image-url" placeholder="https://ejemplo.com/imagen.jpg">
-              </div>
-              <div id="image-preview" style="margin-top:10px; display:none;">
-                <img id="preview-img" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid var(--border);">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Titulo</label>
-              <input type="text" id="slide-title" placeholder="Titulo del slide">
-            </div>
-
-            <div class="form-group">
-              <label>Descripcion</label>
-              <textarea id="slide-description" placeholder="Descripcion o mensaje"></textarea>
-            </div>
-
-            <div class="form-group" id="price-group">
-              <label>Precio / Etiqueta</label>
-              <input type="text" id="slide-price" placeholder="Ej: $299.99 o 30% OFF">
-            </div>
-
-            <!-- ===== GRUPO CATÁLOGO ===== -->
-            <div id="catalogo-group" style="display:none;">
-              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                <label style="font-size:0.85rem; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.05em;">Articulo del catalogo</label>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span id="catalogo-status" style="font-size:0.78rem; color:var(--text-dim);"></span>
-                  <button type="button" class="btn btn-outline btn-sm" id="btn-load-catalogo">&#8635; Cargar articulos</button>
-                </div>
-              </div>
-
-              <div class="catalogo-search-wrap">
-                <input type="text" id="catalogo-search" placeholder="Buscar articulo..." autocomplete="off" class="form-group" style="width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg-input); color:var(--text); font-size:0.95rem; outline:none; font-family:inherit; transition:border-color 0.2s;" disabled>
-                <div id="catalogo-dropdown" class="catalogo-dropdown"></div>
-              </div>
-
-              <div class="catalogo-preview-card" id="catalogo-preview-card">
-                <img class="catalogo-preview-img" id="catalogo-preview-img" alt="Imagen articulo">
-                <div>
-                  <div class="catalogo-preview-nombre" id="catalogo-preview-nombre"></div>
-                  <div class="catalogo-preview-precio" id="catalogo-preview-precio"></div>
-                </div>
-              </div>
-
-              <input type="hidden" id="catalogo-nombre">
-              <input type="hidden" id="catalogo-imagen">
-              <input type="hidden" id="catalogo-imagen-fallback">
-              <input type="hidden" id="catalogo-precio-raw">
-
-              <div class="form-group" style="margin-top:12px;">
-                <label>Precio manual <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--text-dim);">(opcional — reemplaza el de Google Sheets)</span></label>
-                <input type="text" id="slide-precio-manual" inputmode="numeric" autocomplete="off" placeholder="Ej: 15999 (solo numeros)">
-              </div>
-
-              <div class="form-group">
-                <label>Leyenda</label>
-                <input type="text" id="slide-leyenda" value="ABONANDO EN EFECTIVO" placeholder="Texto de leyenda bajo la imagen">
-              </div>
-            </div>
-            <!-- ===== FIN GRUPO CATÁLOGO ===== -->
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Color de fondo</label>
-                <div class="color-input-wrap">
-                  <input type="color" id="slide-bg-color" value="#000000">
-                  <input type="text" id="slide-bg-color-text" value="#000000" placeholder="#000000">
-                </div>
-              </div>
-              <div class="form-group">
-                <label>Color de texto</label>
-                <div class="color-input-wrap">
-                  <input type="color" id="slide-text-color" value="#ffffff">
-                  <input type="text" id="slide-text-color-text" value="#ffffff" placeholder="#ffffff">
-                </div>
-              </div>
-            </div>
-
-            <div style="display:flex; gap:10px; margin-top:0.5rem;">
-              <button class="btn btn-primary" id="btn-add-slide">Agregar Slide</button>
-              <button class="btn btn-outline" id="btn-clear-form">Limpiar</button>
+            <div class="page-actions">
+              <a class="btn btn-outline btn-sm" id="cartelera-link" href="index.html" target="_blank" rel="noopener"><svg class="ico"><use href="#i-external"/></svg>Abrir reproductor</a>
             </div>
           </div>
-        </div>
 
-        <!-- Lista de slides -->
-        <div class="section">
-          <div class="section-title">
-            Slides Actuales
-            <span class="badge" id="slide-count">0</span>
+          <div class="workspace-grid">
+            <!-- Nuevo slide -->
+            <div class="card">
+              <div class="card-title"><span class="title">Nuevo slide</span></div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="slide-type">Tipo</label>
+                  <select id="slide-type">
+                    <option value="image">Imagen con texto</option>
+                    <option value="text">Solo texto</option>
+                    <option value="catalogo">Catalogo</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="slide-duration">Duracion <span class="field-hint">seg</span></label>
+                  <input type="number" id="slide-duration" value="8" min="3" max="120">
+                </div>
+              </div>
+
+              <!-- Imagen -->
+              <div class="form-group" id="image-upload-group">
+                <label>Imagen</label>
+                <div class="upload-area" id="upload-area">
+                  <div class="icon"><svg class="ico"><use href="#i-image"/></svg></div>
+                  <div>Arrastra una imagen o haz clic</div>
+                  <div class="hint">JPG · PNG · WebP — max 10 MB</div>
+                </div>
+                <input type="file" id="image-file" accept="image/*" style="display:none">
+                <div class="sub-field">
+                  <input type="url" id="slide-image-url" placeholder="O pega una URL directa: https://…">
+                </div>
+                <div id="image-preview" class="image-preview" style="display:none;">
+                  <img id="preview-img" alt="Vista previa">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="slide-title">Titulo</label>
+                <input type="text" id="slide-title" placeholder="Titulo del slide">
+              </div>
+
+              <div class="form-group">
+                <label for="slide-description">Descripcion</label>
+                <textarea id="slide-description" placeholder="Descripcion o mensaje"></textarea>
+              </div>
+
+              <div class="form-group" id="price-group">
+                <label for="slide-price">Precio o etiqueta</label>
+                <input type="text" id="slide-price" placeholder="Ej: $299.99 o 30% OFF">
+              </div>
+
+              <!-- ===== GRUPO CATÁLOGO ===== -->
+              <div id="catalogo-group" style="display:none;">
+                <div class="form-group">
+                  <div class="catalogo-head">
+                    <span class="field-label">Articulo del catalogo</span>
+                    <div class="catalogo-tools">
+                      <span id="catalogo-status"></span>
+                      <button type="button" class="btn btn-outline btn-sm" id="btn-load-catalogo"><svg class="ico"><use href="#i-refresh"/></svg>Cargar</button>
+                    </div>
+                  </div>
+
+                  <div class="catalogo-search-wrap">
+                    <svg class="ico"><use href="#i-search"/></svg>
+                    <input type="text" id="catalogo-search" placeholder="Buscar articulo…" autocomplete="off" disabled>
+                    <div id="catalogo-dropdown" class="catalogo-dropdown"></div>
+                  </div>
+
+                  <div class="catalogo-preview-card" id="catalogo-preview-card">
+                    <img class="catalogo-preview-img" id="catalogo-preview-img" alt="Imagen articulo">
+                    <div>
+                      <div class="catalogo-preview-nombre" id="catalogo-preview-nombre"></div>
+                      <div class="catalogo-preview-precio" id="catalogo-preview-precio"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <input type="hidden" id="catalogo-nombre">
+                <input type="hidden" id="catalogo-imagen">
+                <input type="hidden" id="catalogo-imagen-fallback">
+                <input type="hidden" id="catalogo-precio-raw">
+
+                <div class="form-group">
+                  <label for="slide-precio-manual">Precio manual <span class="field-hint">opcional — reemplaza el de Google Sheets</span></label>
+                  <input type="text" id="slide-precio-manual" inputmode="numeric" autocomplete="off" placeholder="Ej: 15999">
+                </div>
+
+                <div class="form-group">
+                  <label for="slide-leyenda">Leyenda</label>
+                  <input type="text" id="slide-leyenda" value="ABONANDO EN EFECTIVO" placeholder="Texto de leyenda bajo el precio">
+                </div>
+              </div>
+              <!-- ===== FIN GRUPO CATÁLOGO ===== -->
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Fondo</label>
+                  <div class="color-input-wrap">
+                    <input type="color" id="slide-bg-color" value="#000000">
+                    <input type="text" id="slide-bg-color-text" value="#000000" placeholder="#000000">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Texto</label>
+                  <div class="color-input-wrap">
+                    <input type="color" id="slide-text-color" value="#ffffff">
+                    <input type="text" id="slide-text-color-text" value="#ffffff" placeholder="#ffffff">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-primary" id="btn-add-slide"><svg class="ico"><use href="#i-plus"/></svg>Agregar slide</button>
+                <button class="btn btn-outline" id="btn-clear-form">Limpiar</button>
+              </div>
+            </div>
+
+            <!-- Slides en rotacion -->
+            <div class="card">
+              <div class="card-title">
+                <span class="title">En rotacion <span class="badge" id="slide-count">0</span></span>
+                <span class="meta drag-hint">Arrastra para reordenar</span>
+              </div>
+              <ul class="slide-list" id="slide-list"></ul>
+              <div class="empty-state" id="empty-slides">
+                <div class="empty-icon"><svg class="ico"><use href="#i-layers"/></svg></div>
+                <div class="title">Todavia no hay slides</div>
+                <div class="text">Crea el primero con el formulario. Aparecera aqui y en la pantalla al instante.</div>
+              </div>
+            </div>
           </div>
-          <ul class="slide-list" id="slide-list"></ul>
-          <div id="empty-slides" style="text-align:center; padding:2rem; color:var(--text-dim);">
-            No hay slides configurados. Agrega el primero arriba.
+        </section>
+
+        <!-- ============================== VISTA: PANTALLAS LED ============================== -->
+        <!-- Salida para la consola de split: A en (0,0) 256x512 y B en (256,0) 128x256 -->
+        <section class="view" id="view-led" hidden>
+          <div class="page-head">
+            <div>
+              <div class="page-eyebrow"><svg class="ico"><use href="#i-led"/></svg>Pantallas LED</div>
+              <h1>Salida para consola de split</h1>
+              <div class="sub">Pares de imagenes de <code id="led-screen-name">default</code> &middot; A <span class="mono">256&times;512</span> en (0,0) &middot; B <span class="mono">128&times;256</span> en (256,0)</div>
+            </div>
+            <div class="page-actions">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-copy-led-link"><svg class="ico"><use href="#i-copy"/></svg>Copiar enlace</button>
+              <a class="btn btn-outline btn-sm" id="led-link-test" href="led.html?test=1" target="_blank" rel="noopener"><svg class="ico"><use href="#i-grid"/></svg>Patron de prueba</a>
+              <a class="btn btn-primary btn-sm" id="led-link" href="led.html" target="_blank" rel="noopener"><svg class="ico"><use href="#i-play"/></svg>Abrir salida</a>
+            </div>
           </div>
-        </div>
+
+          <div class="workspace-grid">
+            <!-- Composicion del nuevo par -->
+            <div class="card">
+              <div class="card-title"><span class="title">Nuevo par</span><span class="meta">384&times;512</span></div>
+
+              <div class="led-stage-wrap">
+                <div class="led-stage">
+                  <div class="led-slot" data-slot="a" id="led-upload-a" tabindex="0" role="button" aria-label="Subir imagen A, 256 por 512">
+                    <img id="led-preview-a" alt="Imagen A">
+                    <div class="slot-label" id="led-label-a"></div>
+                  </div>
+                  <div class="led-slot" data-slot="b" id="led-upload-b" tabindex="0" role="button" aria-label="Subir imagen B, 128 por 256">
+                    <img id="led-preview-b" alt="Imagen B">
+                    <div class="slot-label" id="led-label-b"></div>
+                  </div>
+                  <div class="unused">sin uso<br>negro</div>
+                </div>
+              </div>
+              <div class="led-stage-caption">Vista a escala de la salida. Arrastra o haz clic en cada zona;<br>la imagen se ajusta a la medida exacta en PNG.</div>
+
+              <input type="file" id="led-file-a" accept="image/*" style="display:none">
+              <input type="file" id="led-file-b" accept="image/*" style="display:none">
+              <input type="hidden" id="led-url-a">
+              <input type="hidden" id="led-url-b">
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="led-title">Titulo <span class="field-hint">opcional</span></label>
+                  <input type="text" id="led-title" placeholder="Referencia interna">
+                </div>
+                <div class="form-group">
+                  <label for="led-duration">Duracion <span class="field-hint">seg</span></label>
+                  <input type="number" id="led-duration" value="10" min="3" max="600">
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-primary" id="btn-add-led-pair"><svg class="ico"><use href="#i-plus"/></svg>Agregar a la rotacion</button>
+                <button class="btn btn-outline" id="btn-clear-led-form">Limpiar</button>
+              </div>
+            </div>
+
+            <!-- Pares en rotacion -->
+            <div class="card">
+              <div class="card-title">
+                <span class="title">En rotacion <span class="badge" id="led-count">0</span></span>
+                <span class="meta" id="led-cycle"></span>
+              </div>
+              <ul class="slide-list" id="led-pair-list"></ul>
+              <div class="empty-state" id="empty-led-pairs">
+                <div class="empty-icon"><svg class="ico"><use href="#i-led"/></svg></div>
+                <div class="title">Todavia no hay pares</div>
+                <div class="text">Compone el primero cargando las imagenes A y B en el lienzo.</div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   </div>
 
   <!-- ============================== MODAL: CONFIGURACIÓN ============================== -->
-  <div class="modal-overlay" id="config-modal">
+  <div class="modal-overlay" id="config-modal" role="dialog" aria-modal="true" aria-labelledby="config-modal-title">
     <div class="modal">
       <div class="modal-header">
-        <h2>Configuracion Global</h2>
-        <button class="modal-close" onclick="closeModal('config-modal')">&times;</button>
+        <div>
+          <h2 id="config-modal-title">Configuracion</h2>
+          <div class="sub">Se aplica al reproductor de esta pantalla</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('config-modal')" aria-label="Cerrar"><svg class="ico"><use href="#i-close"/></svg></button>
       </div>
 
+      <div class="modal-section-label">Transiciones</div>
       <div class="form-group">
-        <label>Tipo de transicion</label>
+        <label for="config-transition">Tipo de transicion</label>
         <select id="config-transition">
           <option value="fade">Fade (desvanecer)</option>
           <option value="zoom">Zoom</option>
@@ -777,15 +1964,16 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label>Velocidad de transicion (seg)</label>
+          <label for="config-speed">Velocidad <span class="field-hint">seg</span></label>
           <input type="number" id="config-speed" value="1" min="0.3" max="5" step="0.1">
         </div>
         <div class="form-group">
-          <label>Duracion por defecto (seg)</label>
+          <label for="config-duration">Duracion por defecto <span class="field-hint">seg</span></label>
           <input type="number" id="config-duration" value="8" min="3" max="120">
         </div>
       </div>
 
+      <div class="modal-section-label">Apariencia</div>
       <div class="form-row">
         <div class="form-group">
           <label>Color primario</label>
@@ -805,102 +1993,105 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label style="display:flex; align-items:center; gap:8px; text-transform:none;">
-            <input type="checkbox" id="config-show-clock" checked> Mostrar reloj
-          </label>
+          <label class="switch">Mostrar reloj <input type="checkbox" id="config-show-clock" checked></label>
         </div>
         <div class="form-group">
-          <label style="display:flex; align-items:center; gap:8px; text-transform:none;">
-            <input type="checkbox" id="config-show-indicators" checked> Mostrar indicadores
-          </label>
+          <label class="switch">Mostrar indicadores <input type="checkbox" id="config-show-indicators" checked></label>
         </div>
       </div>
 
-      <button class="btn btn-primary btn-full" id="btn-save-config" style="margin-top:1rem;">Guardar Configuracion</button>
+      <button class="btn btn-primary btn-full" id="btn-save-config">Guardar configuracion</button>
     </div>
   </div>
 
   <!-- ============================== MODAL: HISTORIAL ============================== -->
-  <div class="modal-overlay" id="history-modal">
+  <div class="modal-overlay" id="history-modal" role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
     <div class="modal">
       <div class="modal-header">
-        <h2>Historial de Cambios</h2>
-        <button class="modal-close" onclick="closeModal('history-modal')">&times;</button>
+        <div>
+          <h2 id="history-modal-title">Historial</h2>
+          <div class="sub">Ultimos 50 cambios en todas las pantallas</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('history-modal')" aria-label="Cerrar"><svg class="ico"><use href="#i-close"/></svg></button>
       </div>
       <div id="history-list">
-        <div style="text-align:center; padding:2rem; color:var(--text-dim);">Sin historial</div>
+        <div class="empty-state"><div class="title">Sin historial</div></div>
       </div>
     </div>
   </div>
 
   <!-- ============================== MODAL: EDITAR SLIDE ============================== -->
-  <div class="modal-overlay" id="edit-modal">
+  <div class="modal-overlay" id="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
     <div class="modal">
       <div class="modal-header">
-        <h2>Editar Slide</h2>
-        <button class="modal-close" onclick="closeModal('edit-modal')">&times;</button>
+        <div>
+          <h2 id="edit-modal-title">Editar slide</h2>
+          <div class="sub">Los cambios se publican al guardar</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('edit-modal')" aria-label="Cerrar"><svg class="ico"><use href="#i-close"/></svg></button>
       </div>
 
       <input type="hidden" id="edit-slide-index">
 
-      <div class="form-group">
-        <label>Tipo de Slide</label>
-        <select id="edit-type">
-          <option value="image">Imagen con texto</option>
-          <option value="text">Solo texto</option>
-          <option value="catalogo">Catalogo</option>
-        </select>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="edit-type">Tipo</label>
+          <select id="edit-type">
+            <option value="image">Imagen con texto</option>
+            <option value="text">Solo texto</option>
+            <option value="catalogo">Catalogo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-active">Estado</label>
+          <select id="edit-active">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
       </div>
 
       <div class="form-group" id="edit-image-group">
-        <label>URL de Imagen</label>
-        <input type="url" id="edit-image-url" placeholder="https://ejemplo.com/imagen.jpg">
+        <label for="edit-image-url">URL de imagen</label>
+        <input type="url" id="edit-image-url" placeholder="https://…">
       </div>
 
       <div class="form-group">
-        <label>Titulo</label>
+        <label for="edit-title">Titulo</label>
         <input type="text" id="edit-title">
       </div>
 
       <div class="form-group">
-        <label>Descripcion</label>
+        <label for="edit-description">Descripcion</label>
         <textarea id="edit-description"></textarea>
       </div>
 
-      <div class="form-group">
-        <label>Precio / Etiqueta</label>
-        <input type="text" id="edit-price">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="edit-price">Precio o etiqueta</label>
+          <input type="text" id="edit-price">
+        </div>
+        <div class="form-group">
+          <label for="edit-duration">Duracion <span class="field-hint">seg</span></label>
+          <input type="number" id="edit-duration" min="3" max="120">
+        </div>
       </div>
 
       <div class="form-group" id="edit-leyenda-group">
-        <label>Leyenda</label>
+        <label for="edit-leyenda">Leyenda</label>
         <input type="text" id="edit-leyenda" placeholder="Ej: ABONANDO EN EFECTIVO">
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Duracion (seg)</label>
-          <input type="number" id="edit-duration" min="3" max="120">
-        </div>
-        <div class="form-group">
-          <label>Activo</label>
-          <select id="edit-active">
-            <option value="true">Si</option>
-            <option value="false">No</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Color de fondo</label>
+          <label>Fondo</label>
           <div class="color-input-wrap">
             <input type="color" id="edit-bg-color" value="#000000">
             <input type="text" id="edit-bg-color-text" value="#000000">
           </div>
         </div>
         <div class="form-group">
-          <label>Color de texto</label>
+          <label>Texto</label>
           <div class="color-input-wrap">
             <input type="color" id="edit-text-color" value="#ffffff">
             <input type="text" id="edit-text-color-text" value="#ffffff">
@@ -908,12 +2099,12 @@
         </div>
       </div>
 
-      <button class="btn btn-primary btn-full" id="btn-save-edit" style="margin-top:1rem;">Guardar Cambios</button>
+      <button class="btn btn-primary btn-full" id="btn-save-edit">Guardar cambios</button>
     </div>
   </div>
 
   <!-- Toast -->
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -954,6 +2145,61 @@
 
     var currentScreen = 'default';
     var slides = [];
+
+    /* ==========================================================
+       TEMA CLARO / OSCURO
+       Sin eleccion guardada, sigue al sistema (y a sus cambios).
+       El atributo inicial lo pone el script del <head>.
+       ========================================================== */
+    var THEME_KEY = 'hp_admin_theme';
+
+    function getSavedTheme() {
+      try {
+        var t = localStorage.getItem(THEME_KEY);
+        return t === 'light' || t === 'dark' ? t : null;
+      } catch (e) { return null; }
+    }
+
+    function systemTheme() {
+      return window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+
+    function applyTheme(theme, animate) {
+      var root = document.documentElement;
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (animate && !reduce) {
+        root.classList.add('theme-anim');
+        clearTimeout(applyTheme.timer);
+        applyTheme.timer = setTimeout(function() { root.classList.remove('theme-anim'); }, 350);
+      }
+      root.setAttribute('data-theme', theme);
+      document.querySelectorAll('[data-theme-choice]').forEach(function(btn) {
+        btn.setAttribute('aria-checked', btn.dataset.themeChoice === theme ? 'true' : 'false');
+      });
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'light' ? '#F4F3EF' : '#0A0A0B');
+    }
+
+    function setupThemeSwitch() {
+      document.querySelectorAll('[data-theme-choice]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var theme = this.dataset.themeChoice;
+          try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* silenciar */ }
+          applyTheme(theme, true);
+        });
+      });
+
+      if (window.matchMedia) {
+        var mq = matchMedia('(prefers-color-scheme: light)');
+        var onSystemChange = function() { if (!getSavedTheme()) applyTheme(systemTheme(), true); };
+        if (mq.addEventListener) mq.addEventListener('change', onSystemChange);
+        else if (mq.addListener) mq.addListener(onSystemChange);
+      }
+
+      applyTheme(getSavedTheme() || systemTheme(), false);
+    }
+
+    setupThemeSwitch();
 
     /* ==========================================================
        AUTENTICACIÓN FIREBASE
@@ -1008,6 +2254,7 @@
       loadScreenList();
       loadSlides();
       loadConfig();
+      loadLedPairs();
       loadHistory();
       setupEventListeners();
     }
@@ -1023,7 +2270,7 @@
           }
           var opt = document.createElement('option');
           opt.value = screenId;
-          opt.textContent = 'Pantalla: ' + screenId;
+          opt.textContent = screenId;
           sel.appendChild(opt);
         });
       });
@@ -1046,6 +2293,7 @@
         currentScreen = this.value;
         loadSlides();
         loadConfig();
+        loadLedPairs();
       });
 
       // Agregar pantalla
@@ -1063,7 +2311,7 @@
           }
           var opt = document.createElement('option');
           opt.value = name;
-          opt.textContent = 'Pantalla: ' + name;
+          opt.textContent = name;
           sel.appendChild(opt);
           sel.value = name;
           currentScreen = name;
@@ -1071,6 +2319,7 @@
           // Crear entrada en Firebase
           db.ref('screens/' + name).set({ content: { slides: [] }, config: {} });
           loadSlides();
+          loadLedPairs();
           showToast('Pantalla "' + name + '" creada');
         }
       });
@@ -1148,6 +2397,14 @@
       // Guardar edición
       document.getElementById('btn-save-edit').addEventListener('click', saveSlideEdit);
 
+      // Esc cierra el modal abierto
+      document.addEventListener('keydown', function(e) {
+        if (e.key !== 'Escape') return;
+        document.querySelectorAll('.modal-overlay.visible').forEach(function(overlay) {
+          overlay.classList.remove('visible');
+        });
+      });
+
       // Cerrar modales con clic fuera
       document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
         overlay.addEventListener('click', function(e) {
@@ -1157,6 +2414,10 @@
 
       // Catálogo
       initCatalogo();
+
+      // Pantalla LED
+      setupLedUploads();
+      setupViewSwitch();
 
       // Precio manual: solo digitos
       var precioManualInput = document.getElementById('slide-precio-manual');
@@ -1222,7 +2483,7 @@
       var ref = storage.ref(fileName);
       var task = ref.put(blob, { contentType: 'image/jpeg' });
 
-      uploadArea.innerHTML = '<div class="icon">&#8593;</div><div>Subiendo imagen...</div><div class="hint" id="upload-progress">0%</div>';
+      uploadArea.innerHTML = '<div class="icon">' + icon('upload') + '</div><div>Subiendo imagen…</div><div class="hint" id="upload-progress">0%</div>';
 
       task.on('state_changed',
         function(snap) {
@@ -1248,9 +2509,9 @@
 
     function resetUploadArea() {
       document.getElementById('upload-area').innerHTML =
-        '<div class="icon">&#128247;</div>' +
-        '<div>Arrastra una imagen o haz clic para seleccionar</div>' +
-        '<div class="hint">JPG, PNG, WebP - Max 10MB</div>';
+        '<div class="icon">' + icon('image') + '</div>' +
+        '<div>Arrastra una imagen o haz clic</div>' +
+        '<div class="hint">JPG · PNG · WebP — max 10 MB</div>';
     }
 
     /* ==========================================================
@@ -1501,7 +2762,7 @@
         var data = snapshot.val();
 
         if (!data) {
-          container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-dim);">Sin historial</div>';
+          container.innerHTML = '<div class="empty-state"><div class="title">Sin historial</div></div>';
           return;
         }
 
@@ -1516,7 +2777,7 @@
           var time = entry.timestamp ? new Date(entry.timestamp).toLocaleString('es-ES') : '';
           el.innerHTML =
             '<div>' + escapeHtml(entry.message) + '</div>' +
-            '<div class="time">' + time + ' - Pantalla: ' + escapeHtml(entry.screen || 'default') + '</div>';
+            '<div class="time">' + time + ' · ' + escapeHtml(entry.screen || 'default') + '</div>';
           container.appendChild(el);
         });
       });
@@ -1543,7 +2804,7 @@
 
       slides.forEach(function(slide, index) {
         var li = document.createElement('li');
-        li.className = 'slide-item';
+        li.className = 'slide-item' + (slide.active === false ? ' is-off' : '');
         li.draggable = true;
         li.dataset.index = index;
 
@@ -1582,23 +2843,23 @@
         // Info
         var info = document.createElement('div');
         info.className = 'slide-info';
-        var typeLabel = slide.type === 'catalogo' ? 'catalogo' : slide.type;
+        var typeLabel = SLIDE_TYPE_LABELS[slide.type] || slide.type || 'Imagen';
         info.innerHTML =
           '<div class="name">' + escapeHtml(slide.title || 'Sin titulo') + '</div>' +
           '<div class="meta">' +
-            typeLabel + ' | ' + slide.duration + 's | ' +
-            (slide.active !== false ? '<span style="color:var(--accent)">Activo</span>' : '<span style="color:var(--danger)">Inactivo</span>') +
+            '<span>' + escapeHtml(typeLabel) + '</span><span>' + (slide.duration || 8) + 's</span>' +
+            statusHtml(slide.active !== false) +
           '</div>';
 
         // Actions
         var actions = document.createElement('div');
         actions.className = 'slide-actions';
         actions.innerHTML =
-          '<button class="icon-btn" onclick="moveSlide(' + index + ', -1)" title="Subir">&uarr;</button>' +
-          '<button class="icon-btn" onclick="moveSlide(' + index + ', 1)" title="Bajar">&darr;</button>' +
-          '<button class="icon-btn" onclick="toggleSlide(' + index + ')" title="Activar/Desactivar">' + (slide.active !== false ? '&#9899;' : '&#9898;') + '</button>' +
-          '<button class="icon-btn" onclick="editSlide(' + index + ')" title="Editar">&#9998;</button>' +
-          '<button class="icon-btn danger" onclick="deleteSlide(' + index + ')" title="Eliminar">&#10005;</button>';
+          '<button class="icon-btn" onclick="moveSlide(' + index + ', -1)" title="Subir" aria-label="Subir">' + icon('up') + '</button>' +
+          '<button class="icon-btn" onclick="moveSlide(' + index + ', 1)" title="Bajar" aria-label="Bajar">' + icon('down') + '</button>' +
+          '<button class="icon-btn" onclick="toggleSlide(' + index + ')" title="' + (slide.active !== false ? 'Desactivar' : 'Activar') + '" aria-label="Activar o desactivar">' + icon(slide.active !== false ? 'eye' : 'eye-off') + '</button>' +
+          '<button class="icon-btn" onclick="editSlide(' + index + ')" title="Editar" aria-label="Editar">' + icon('edit') + '</button>' +
+          '<button class="icon-btn danger" onclick="deleteSlide(' + index + ')" title="Eliminar" aria-label="Eliminar">' + icon('trash') + '</button>';
 
         li.appendChild(thumb);
         li.appendChild(info);
@@ -1626,6 +2887,387 @@
             var item = slides.splice(fromIndex, 1)[0];
             slides.splice(toIndex, 0, item);
             saveSlides();
+          }
+        });
+
+        list.appendChild(li);
+      });
+    }
+
+    /* ==========================================================
+       ESPACIO DE TRABAJO: CARTELERA / PANTALLAS LED
+       Las dos vistas comparten el selector de pantalla y el historial;
+       "Configuracion" (transiciones, reloj) solo aplica a la cartelera.
+       ========================================================== */
+    var ADMIN_VIEW_KEY = 'hp_admin_view';
+
+    function getInitialView() {
+      if (location.hash === '#led') return 'led';
+      if (location.hash === '#cartelera') return 'cartelera';
+      try { return localStorage.getItem(ADMIN_VIEW_KEY) || 'cartelera'; } catch (e) { return 'cartelera'; }
+    }
+
+    function switchView(view) {
+      if (view !== 'led') view = 'cartelera';
+
+      document.querySelectorAll('.view-switch button').forEach(function(btn) {
+        var active = btn.dataset.view === view;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      document.getElementById('view-cartelera').hidden = view !== 'cartelera';
+      document.getElementById('view-led').hidden = view !== 'led';
+      document.getElementById('btn-config').style.display = view === 'led' ? 'none' : '';
+      positionViewIndicator();
+
+      try { localStorage.setItem(ADMIN_VIEW_KEY, view); } catch (e) { /* silenciar */ }
+      history.replaceState(null, '', '#' + view);
+    }
+
+    // La pastilla se desliza hasta el boton activo (los dos tienen anchos distintos)
+    function positionViewIndicator() {
+      var nav = document.querySelector('.view-switch');
+      var active = nav.querySelector('button.active');
+      if (!active || !active.offsetWidth) return;
+      nav.style.setProperty('--x', active.offsetLeft + 'px');
+      nav.style.setProperty('--w', active.offsetWidth + 'px');
+    }
+
+    function setupViewSwitch() {
+      document.querySelectorAll('.view-switch button').forEach(function(btn) {
+        btn.addEventListener('click', function() { switchView(this.dataset.view); });
+      });
+      switchView(getInitialView());
+      window.addEventListener('resize', positionViewIndicator);
+      // Manrope llega despues del primer render y cambia el ancho de los botones
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(positionViewIndicator);
+    }
+
+    /* ==========================================================
+       PANTALLA LED (2 IMÁGENES)
+       led.html dibuja A en (0,0) 256x512 y B en (256,0) 128x256 para
+       que la consola de split lea cada region. Los datos viven en
+       screens/{id}/led, separados de content y config.
+       ========================================================== */
+    var LED_SLOTS = {
+      a: { w: 256, h: 512 },
+      b: { w: 128, h: 256 }
+    };
+    var ledPairs = [];
+    var ledRef = null;
+
+    function setupLedUploads() {
+      ['a', 'b'].forEach(function(slot) {
+        var area = document.getElementById('led-upload-' + slot);
+        var input = document.getElementById('led-file-' + slot);
+
+        resetLedUploadArea(slot);
+
+        area.addEventListener('click', function() { input.click(); });
+        area.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            input.click();
+          }
+        });
+        area.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          area.classList.add('dragover');
+        });
+        area.addEventListener('dragleave', function() {
+          area.classList.remove('dragover');
+        });
+        area.addEventListener('drop', function(e) {
+          e.preventDefault();
+          area.classList.remove('dragover');
+          if (e.dataTransfer.files.length) handleLedFile(e.dataTransfer.files[0], slot);
+        });
+        input.addEventListener('change', function() {
+          if (this.files.length) handleLedFile(this.files[0], slot);
+          this.value = '';
+        });
+      });
+
+      document.getElementById('btn-add-led-pair').addEventListener('click', addLedPair);
+      document.getElementById('btn-clear-led-form').addEventListener('click', clearLedForm);
+      document.getElementById('btn-copy-led-link').addEventListener('click', copyLedLink);
+    }
+
+    function handleLedFile(file, slot) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Solo se permiten imagenes', 'error');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('La imagen no debe superar 10MB', 'error');
+        return;
+      }
+
+      var size = LED_SLOTS[slot];
+      fitImageToExactSize(file, size.w, size.h, function(blob, origW, origH) {
+        if (!blob) {
+          showToast('No se pudo procesar la imagen', 'error');
+          return;
+        }
+        if (origW !== size.w || origH !== size.h) {
+          showToast('Imagen ' + slot.toUpperCase() + ' ajustada de ' + origW + 'x' + origH + ' a ' + size.w + 'x' + size.h);
+        }
+        uploadLedBlob(blob, slot)
+          .then(function(url) {
+            document.getElementById('led-url-' + slot).value = url;
+            document.getElementById('led-preview-' + slot).src = url;
+            document.getElementById('led-upload-' + slot).classList.add('has-image');
+            showToast('Imagen ' + slot.toUpperCase() + ' subida');
+          })
+          .catch(function(err) {
+            showToast('Error al subir: ' + err.message, 'error');
+          })
+          .finally(function() {
+            resetLedUploadArea(slot);
+          });
+      });
+    }
+
+    // Lleva la imagen a la medida exacta: escala "cover" centrada (recorta lo
+    // que sobra) y exporta PNG, sin la recompresion JPEG de compressImageToBlob
+    // que en un LED de baja resolucion se nota.
+    function fitImageToExactSize(file, w, h, callback) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          var ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+
+          var scale = Math.max(w / img.width, h / img.height);
+          var dw = img.width * scale;
+          var dh = img.height * scale;
+          ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+
+          canvas.toBlob(function(blob) {
+            callback(blob, img.width, img.height);
+          }, 'image/png');
+        };
+        img.onerror = function() { callback(null, 0, 0); };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function uploadLedBlob(blob, slot) {
+      var fileName = 'slides/led_' + Date.now() + '_' + Math.random().toString(36).slice(2) + '_' + slot + '.png';
+      var area = document.getElementById('led-upload-' + slot);
+      var task = storage.ref(fileName).put(blob, { contentType: 'image/png' });
+
+      area.classList.add('uploading');
+      document.getElementById('led-label-' + slot).innerHTML =
+        '<span class="letter">&#8593;</span>Subiendo<br><span class="size" id="led-progress-' + slot + '">0%</span>';
+
+      return new Promise(function(resolve, reject) {
+        task.on('state_changed',
+          function(snap) {
+            var el = document.getElementById('led-progress-' + slot);
+            if (el) el.textContent = Math.round((snap.bytesTransferred / snap.totalBytes) * 100) + '%';
+          },
+          reject,
+          function() {
+            task.snapshot.ref.getDownloadURL().then(resolve, reject);
+          }
+        );
+      });
+    }
+
+    function resetLedUploadArea(slot) {
+      var size = LED_SLOTS[slot];
+      var area = document.getElementById('led-upload-' + slot);
+      area.classList.remove('uploading');
+      document.getElementById('led-label-' + slot).innerHTML =
+        '<span class="letter">' + slot.toUpperCase() + '</span>' +
+        '<span class="size">' + size.w + '&times;' + size.h + '</span><br>' +
+        (area.classList.contains('has-image') ? 'Reemplazar' : 'Subir imagen');
+    }
+
+    function clearLedForm() {
+      ['a', 'b'].forEach(function(slot) {
+        document.getElementById('led-url-' + slot).value = '';
+        document.getElementById('led-preview-' + slot).removeAttribute('src');
+        document.getElementById('led-upload-' + slot).classList.remove('has-image');
+        resetLedUploadArea(slot);
+      });
+      document.getElementById('led-title').value = '';
+      document.getElementById('led-duration').value = '10';
+    }
+
+    function ledOutputUrl() {
+      return new URL('led.html?s=' + encodeURIComponent(currentScreen), location.href).toString();
+    }
+
+    function copyLedLink() {
+      var url = ledOutputUrl();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url)
+          .then(function() { showToast('Enlace copiado'); })
+          .catch(function() { prompt('Copia el enlace:', url); });
+      } else {
+        prompt('Copia el enlace:', url);
+      }
+    }
+
+    function addLedPair() {
+      var imageA = document.getElementById('led-url-a').value;
+      var imageB = document.getElementById('led-url-b').value;
+
+      if (!imageA || !imageB) {
+        showToast('Sube la imagen A y la imagen B', 'error');
+        return;
+      }
+
+      var pair = {
+        title: document.getElementById('led-title').value.trim(),
+        imageA: imageA,
+        imageB: imageB,
+        duration: parseInt(document.getElementById('led-duration').value) || 10,
+        active: true,
+        createdAt: Date.now()
+      };
+
+      ledPairs.push(pair);
+      saveLedPairs();
+      clearLedForm();
+      showToast('Par LED agregado');
+      addHistoryEntry('Par LED agregado: ' + (pair.title || 'Sin titulo'));
+    }
+
+    function deleteLedPair(index) {
+      if (!confirm('Eliminar este par LED?')) return;
+      var title = ledPairs[index].title || 'Sin titulo';
+      ledPairs.splice(index, 1);
+      saveLedPairs();
+      showToast('Par LED eliminado');
+      addHistoryEntry('Par LED eliminado: ' + title);
+    }
+
+    function moveLedPair(index, direction) {
+      var newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= ledPairs.length) return;
+      var temp = ledPairs[index];
+      ledPairs[index] = ledPairs[newIndex];
+      ledPairs[newIndex] = temp;
+      saveLedPairs();
+    }
+
+    function toggleLedPair(index) {
+      ledPairs[index].active = ledPairs[index].active === false;
+      saveLedPairs();
+      showToast('Par LED ' + (ledPairs[index].active ? 'activado' : 'desactivado'));
+    }
+
+    function saveLedPairs() {
+      db.ref('screens/' + currentScreen + '/led').set({
+        pairs: ledPairs,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      })
+        .then(renderLedPairList)
+        .catch(function(err) {
+          showToast('Error al guardar: ' + err.message, 'error');
+        });
+    }
+
+    // Se suelta el listener de la pantalla anterior: si no, al cambiar de
+    // pantalla seguirian llegando (y pisando la lista) los pares de la vieja.
+    function loadLedPairs() {
+      if (ledRef) ledRef.off();
+      ledRef = db.ref('screens/' + currentScreen + '/led');
+      ledRef.on('value', function(snapshot) {
+        var data = snapshot.val();
+        ledPairs = data && data.pairs
+          ? (Array.isArray(data.pairs) ? data.pairs : Object.values(data.pairs))
+          : [];
+        renderLedPairList();
+      });
+
+      updateScreenLinks();
+    }
+
+    // Enlaces y rotulos que nombran la pantalla actual, en ambas vistas
+    function updateScreenLinks() {
+      var q = '?s=' + encodeURIComponent(currentScreen);
+      document.getElementById('led-link').href = 'led.html' + q;
+      document.getElementById('led-link-test').href = 'led.html' + q + '&test=1';
+      document.getElementById('led-screen-name').textContent = currentScreen;
+      document.getElementById('cartelera-link').href = 'index.html' + q;
+      document.getElementById('cartelera-screen-name').textContent = currentScreen;
+    }
+
+    function renderLedPairList() {
+      var list = document.getElementById('led-pair-list');
+      var empty = document.getElementById('empty-led-pairs');
+      document.getElementById('led-count').textContent = ledPairs.length;
+
+      // Duracion total del ciclo, solo con los pares activos
+      var activos = ledPairs.filter(function(p) { return p.active !== false; });
+      var ciclo = activos.reduce(function(t, p) { return t + (p.duration || 10); }, 0);
+      document.getElementById('led-cycle').textContent = activos.length > 1 ? 'Ciclo completo: ' + ciclo + 's' : '';
+
+      list.innerHTML = '';
+      empty.style.display = ledPairs.length ? 'none' : 'block';
+
+      ledPairs.forEach(function(pair, index) {
+        var li = document.createElement('li');
+        li.className = 'slide-item' + (pair.active === false ? ' is-off' : '');
+        li.draggable = true;
+        li.dataset.index = index;
+
+        var thumb = document.createElement('div');
+        thumb.className = 'led-thumb';
+        thumb.innerHTML =
+          (pair.imageA ? '<img class="a" src="' + escapeHtml(pair.imageA) + '" loading="lazy" alt="A">' : '') +
+          (pair.imageB ? '<img class="b" src="' + escapeHtml(pair.imageB) + '" loading="lazy" alt="B">' : '');
+
+        var info = document.createElement('div');
+        info.className = 'slide-info';
+        info.innerHTML =
+          '<div class="name"><span class="led-order">' + String(index + 1).padStart(2, '0') + '</span>' +
+            escapeHtml(pair.title || 'Par ' + (index + 1)) + '</div>' +
+          '<div class="meta"><span>' + (pair.duration || 10) + 's</span>' +
+            statusHtml(pair.active !== false) +
+          '</div>';
+
+        var actions = document.createElement('div');
+        actions.className = 'slide-actions';
+        actions.innerHTML =
+          '<button class="icon-btn" onclick="moveLedPair(' + index + ', -1)" title="Subir" aria-label="Subir">' + icon('up') + '</button>' +
+          '<button class="icon-btn" onclick="moveLedPair(' + index + ', 1)" title="Bajar" aria-label="Bajar">' + icon('down') + '</button>' +
+          '<button class="icon-btn" onclick="toggleLedPair(' + index + ')" title="' + (pair.active !== false ? 'Desactivar' : 'Activar') + '" aria-label="Activar o desactivar">' + icon(pair.active !== false ? 'eye' : 'eye-off') + '</button>' +
+          '<button class="icon-btn danger" onclick="deleteLedPair(' + index + ')" title="Eliminar" aria-label="Eliminar">' + icon('trash') + '</button>';
+
+        li.appendChild(thumb);
+        li.appendChild(info);
+        li.appendChild(actions);
+
+        // Drag & drop, igual que en la lista de slides
+        li.addEventListener('dragstart', function(e) {
+          e.dataTransfer.setData('text/plain', index);
+          this.classList.add('dragging');
+        });
+        li.addEventListener('dragend', function() {
+          this.classList.remove('dragging');
+        });
+        li.addEventListener('dragover', function(e) {
+          e.preventDefault();
+        });
+        li.addEventListener('drop', function(e) {
+          e.preventDefault();
+          var fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          var toIndex = parseInt(this.dataset.index);
+          if (!isNaN(fromIndex) && fromIndex !== toIndex) {
+            var item = ledPairs.splice(fromIndex, 1)[0];
+            ledPairs.splice(toIndex, 0, item);
+            saveLedPairs();
           }
         });
 
@@ -2102,6 +3744,16 @@
       var div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+    }
+
+    var SLIDE_TYPE_LABELS = { image: 'Imagen', text: 'Texto', catalogo: 'Catalogo' };
+
+    function icon(name) {
+      return '<svg class="ico" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
+    }
+
+    function statusHtml(active) {
+      return active ? '<span class="status on">Activo</span>' : '<span class="status off">Inactivo</span>';
     }
 
     function showToast(message, type) {
