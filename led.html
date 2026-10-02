@@ -660,6 +660,18 @@
     }
 
     function detectScreens() {
+      // Dentro de la app de Windows (led-app/) los monitores los da Electron,
+      // sin permiso del navegador; vienen con la misma forma que ScreenDetailed
+      if (window.ledApp) {
+        window.ledApp.getDisplays()
+          .then(function(list) {
+            var current = list.find(function(d) { return d.isCurrent; }) || null;
+            renderPicker({ screens: list, currentScreen: current });
+          })
+          .catch(function() { renderPicker(null); });
+        return;
+      }
+
       if (!('getScreenDetails' in window)) {
         renderPicker(null, 'Este navegador no permite elegir el monitor automáticamente (usa Chrome o Edge). ' +
           'Arrastra esta ventana a la pantalla deseada y elige "Esta pantalla".');
@@ -779,8 +791,16 @@
         try { localStorage.setItem(LAST_SCREEN_KEY, screenKey(s)); } catch (e) { /* silenciar */ }
       }
 
+      // En la app, Electron mueve la ventana al monitor y despues se pide
+      // pantalla completa ahi; la activacion del clic sigue vigente tras el await
+      var move = (window.ledApp && s)
+        ? window.ledApp.moveToDisplay(s.id)
+        : Promise.resolve();
+      var fsOptions = (s && !window.ledApp) ? { screen: s } : undefined;
+
       if (elem.requestFullscreen) {
-        elem.requestFullscreen(s ? { screen: s } : undefined)
+        move
+          .then(function() { return elem.requestFullscreen(fsOptions); })
           .then(function() {
             hideDisplayPicker();
             // Al cambiar de monitor puede cambiar la escala: recalcular el canvas
@@ -802,6 +822,11 @@
       if (document.fullscreenElement) return;
       if (!document.getElementById('login-screen').classList.contains('hidden')) return;
       showDisplayPicker();
+    });
+
+    // Electron no siempre sale de pantalla completa con Esc como el navegador
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && window.ledApp && document.fullscreenElement) document.exitFullscreen();
     });
 
     document.getElementById('picker-detect').addEventListener('click', detectScreens);

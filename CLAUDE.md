@@ -44,6 +44,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Caché offline en `signtv_led_cache_{screenId}`
 - Al abrir (después del login, o enseguida con `?test=1`) muestra un selector de monitor físico con la Window Management API (`getScreenDetails()` + `requestFullscreen({ screen })`, solo Chrome/Edge, requiere permiso y clic del usuario). Sin la API, cae en "Esta pantalla". Última elección en `signtv_led_last_display`; al salir de fullscreen vuelve a preguntar
 
+### App de Windows (`led-app/`)
+- Electron que empaqueta `../led.html` (lo toma del padre al construir; con `npm start` lo carga directo). `npm run dist` genera `dist/HomePoint LED Setup x.y.z.exe` (NSIS)
+- `preload.js` expone `window.ledApp` (`getDisplays`, `moveToDisplay`): si existe, `led.html` lista los monitores desde Electron y mueve la ventana antes de `requestFullscreen()`, sin la Window Management API. En el navegador ese camino no se usa
+- Recuerda la última `?s=` en `settings.json` de userData; acepta `--s=x`, `--test`, `--debug`. Arranca con Windows, bloquea el apagado de pantalla, F5 recarga, Ctrl+Shift+I DevTools, Ctrl+Q sale
+- Si `npm run dist` falla con "Cannot create symbolic link" (winCodeSign), descomprimir el .7z de `%LOCALAPPDATA%\electron-builder\Cache\winCodeSign` en `winCodeSign-2.6.0` con `node_modules\7zip-bin\win\x64\7za.exe` e ignorar los errores de los .dylib
+
 ### Admin: temas claro y oscuro
 - Tokens en `:root` (oscuro) y `:root[data-theme="light"]`. Las transparencias usan `rgba(var(--tint),a)` y la tinta `rgba(var(--ink-rgb),a)`: no escribir `rgba(255,255,255,...)` fijo, porque desaparece en el modo claro
 - Un script en `<head>` aplica el tema antes de pintar (`hp_admin_theme` en localStorage; sin elección, sigue al sistema). Selector sol/luna en el header y en el login
