@@ -3,8 +3,23 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Imágenes de slides: lectura pública (las usa el reproductor),
-    // escritura solo para usuarios autenticados del panel admin.
+    // Imágenes de cada punto de venta: lectura pública (las usan los
+    // reproductores), escritura solo para usuarios autenticados.
+    // Storage no puede leer los roles de la Realtime Database: qué imagen
+    // se publica en cada local lo controlan las reglas de la base
+    // (database.rules.json), que es donde se guardan las URLs.
+    match /stores/{storeId}/slides/{fileName} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+                            && storeId.matches('^[a-z0-9_-]{1,40}$')
+                            && request.resource.size < 10 * 1024 * 1024
+                            && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null;
+    }
+
+    // Imágenes anteriores a los puntos de venta: los slides migrados siguen
+    // apuntando acá. La escritura se mantiene durante la transición; se puede
+    // cerrar (allow create, update: if false) cuando el admin nuevo esté publicado.
     match /slides/{fileName} {
       allow read: if true;
       allow create, update: if request.auth != null

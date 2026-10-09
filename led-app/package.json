@@ -21,7 +21,7 @@
       "main.js",
       "preload.js",
       "package.json",
-      { "from": "..", "to": ".", "filter": ["led.html"] }
+      { "from": "..", "to": ".", "filter": ["led.html", "store-session.js"] }
     ],
     "win": {
       "target": "nsis",

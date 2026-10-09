@@ -517,6 +517,7 @@
       font-family: inherit;
       font-size: 0.8125rem;
       font-weight: 600;
+      white-space: nowrap;
       cursor: pointer;
       transition: color 0.2s var(--ease);
     }
@@ -580,6 +581,198 @@
     }
 
     .screen-picker select option { background: var(--surface-2); color: var(--ink); }
+
+    /* Selector de punto de venta: mismo material que el de pantalla, pero
+       el nombre del local va en la tipografia de texto, no en mono */
+    .store-picker select,
+    .store-picker .store-fixed {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      letter-spacing: -0.005em;
+    }
+
+    .store-picker .store-fixed {
+      padding-right: 12px;
+      font-size: 0.8125rem;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .store-picker .ico { color: var(--primary-ink); }
+
+    [hidden] { display: none !important; }
+
+    /* ========== ACCESO SIN PUNTO DE VENTA ========== */
+    #access-gate {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    .gate-meta {
+      margin: 18px 0 22px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(var(--tint),0.04);
+      border: 1px solid var(--hairline);
+      font-size: 0.8125rem;
+      color: var(--ink-2);
+    }
+
+    .gate-meta .uid {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--ink-3);
+      word-break: break-all;
+    }
+
+    /* ========== MODAL: PUNTOS DE VENTA Y ACCESOS ========== */
+    .modal.modal-wide { max-width: 720px; }
+
+    .store-rows,
+    .user-rows {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .store-row,
+    .user-row {
+      display: grid;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: rgba(var(--tint),0.025);
+      border: 1px solid var(--hairline);
+      border-radius: 12px;
+    }
+
+    .store-row { grid-template-columns: minmax(0, 1fr) auto; }
+
+    .store-row .name { font-weight: 700; letter-spacing: -0.01em; }
+
+    .store-row .id,
+    .user-row .when {
+      font-family: var(--font-mono);
+      font-size: 0.71875rem;
+      color: var(--ink-3);
+    }
+
+    .store-row input {
+      height: 34px;
+      font-weight: 600;
+    }
+
+    .inline-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .inline-form input { flex: 1; height: 40px; }
+    .inline-form.form-group,
+    .store-row .form-group,
+    .user-row .form-group { margin: 0; }
+
+    .user-row { grid-template-columns: minmax(0, 1fr) 190px; }
+
+    .user-row .email {
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .user-row .you {
+      margin-left: 6px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--primary-ink);
+    }
+
+    .user-row select { height: 34px; font-size: 0.8125rem; }
+
+    .store-chips {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .store-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 28px;
+      padding: 0 11px;
+      border-radius: 14px;
+      border: 1px solid var(--hairline-strong);
+      background: transparent;
+      color: var(--ink-3);
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s var(--ease), border-color 0.15s var(--ease), color 0.15s var(--ease), transform 0.1s var(--ease);
+    }
+
+    .store-chip::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.5;
+    }
+
+    .store-chip:hover { border-color: var(--hairline-hover); color: var(--ink); }
+    .store-chip:active:not(:disabled) { transform: scale(0.96); }
+    .store-chip:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--primary-ring); }
+
+    .store-chip[aria-pressed="true"] {
+      background: var(--primary-soft);
+      border-color: var(--primary-ring);
+      color: var(--primary-ink);
+    }
+
+    .store-chip[aria-pressed="true"]::before { opacity: 1; }
+    .store-chip:disabled { cursor: default; opacity: 0.6; }
+
+    .store-chips .all-access {
+      font-size: 0.75rem;
+      color: var(--ink-3);
+    }
+
+    .modal-note {
+      font-size: 0.78rem;
+      color: var(--ink-3);
+      line-height: 1.5;
+      margin: -4px 0 14px;
+    }
+
+    .migration-box {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--hairline-strong);
+      background: rgba(var(--tint),0.03);
+    }
+
+    .migration-box .status {
+      font-size: 0.8125rem;
+      color: var(--ink-2);
+      margin-bottom: 12px;
+    }
+
+    .migration-box .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     /* ========== LAYOUT ========== */
     .admin-layout { position: relative; }
@@ -1098,35 +1291,6 @@
 
     .empty-state .text { font-size: 0.8125rem; max-width: 300px; }
 
-    /* ========== HISTORIAL ========== */
-    #history-list { position: relative; }
-
-    .history-item {
-      position: relative;
-      padding: 12px 0 12px 22px;
-      border-bottom: 1px solid var(--hairline);
-      font-size: 0.875rem;
-    }
-
-    .history-item::before {
-      content: '';
-      position: absolute;
-      left: 3px; top: 19px;
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--surface-3);
-      box-shadow: inset 0 0 0 1.5px var(--ink-3);
-    }
-
-    .history-item:first-child::before { background: var(--primary); box-shadow: 0 0 8px rgba(80,215,83,0.6); }
-    .history-item:last-child { border: none; }
-
-    .history-item .time {
-      font-family: var(--font-mono);
-      color: var(--ink-3);
-      font-size: 0.71875rem;
-      margin-top: 3px;
-    }
 
     /* ========== MODALES ========== */
     /* Atenuar para enfocar: la hoja se materializa sobre el fondo empujado */
@@ -1553,6 +1717,381 @@
       margin-right: 8px;
     }
 
+    /* ---------- Edicion de un par ---------- */
+    #led-pair-list .slide-item { user-select: none; }
+
+    #led-pair-list .slide-item.is-editing {
+      background: var(--primary-soft);
+      border-color: var(--primary-ring);
+    }
+
+    .edit-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 22px;
+      padding: 0 9px;
+      border-radius: 11px;
+      background: var(--primary-soft);
+      color: var(--primary-ink);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .edit-pill::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse-dot 1.6s var(--ease) infinite;
+    }
+
+    @keyframes pulse-dot { 50% { opacity: 0.35; } }
+
+    .led-form-card.is-editing { box-shadow: var(--shadow), 0 0 0 1px var(--primary-ring); }
+
+    .led-library-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: -8px 0 20px;
+    }
+
+    .list-hint {
+      font-size: 0.71875rem;
+      color: var(--ink-4);
+      margin: -10px 0 12px;
+    }
+
+    @media (hover: none) { .list-hint { display: none; } }
+
+    /* ========== BIBLIOTECA DE IMAGENES ========== */
+    .media-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .media-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .media-summary {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--ink-3);
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+
+    .media-tile {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: border-color 0.15s var(--ease), transform 0.2s var(--ease-sheet), opacity 0.2s;
+      animation: rise 0.4s var(--ease-sheet) both;
+    }
+
+    .media-tile:hover { border-color: var(--hairline-hover); transform: translateY(-2px); }
+
+    /* Cuadricula de transparencia: los PNG se ven tal cual son */
+    .media-thumb {
+      position: relative;
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      background-color: var(--surface-3);
+      background-image:
+        linear-gradient(45deg, rgba(var(--tint),0.05) 25%, transparent 25%, transparent 75%, rgba(var(--tint),0.05) 75%),
+        linear-gradient(45deg, rgba(var(--tint),0.05) 25%, transparent 25%, transparent 75%, rgba(var(--tint),0.05) 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 8px 8px;
+    }
+
+    .media-thumb:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--primary); }
+
+    /* Absoluta: con height 100% sobre una caja de aspect-ratio, una imagen
+       alta (LED A 256x512) estiraria la tarjeta */
+    .media-thumb img {
+      position: absolute;
+      inset: 10px;
+      width: calc(100% - 20px);
+      height: calc(100% - 20px);
+      object-fit: contain;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.25s var(--ease);
+    }
+
+    .media-thumb img.loaded { opacity: 1; }
+    .media-thumb.is-led img { image-rendering: pixelated; }
+
+    .media-info { padding: 10px 12px 12px; min-width: 0; }
+
+    .media-meta {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      color: var(--ink-3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .media-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .media-tag {
+      display: inline-flex;
+      align-items: center;
+      height: 19px;
+      padding: 0 7px;
+      border-radius: 10px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      background: rgba(var(--tint),0.06);
+      color: var(--ink-2);
+    }
+
+    .media-tag.used { background: var(--primary-soft); color: var(--primary-ink); }
+    .media-tag.legacy { color: var(--warning); }
+    .media-tag.origin { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; line-height: 19px; color: var(--ink-3); background: transparent; box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+    .media-tag.origin.mine { color: var(--ink-2); }
+    .media-tag.bad { background: var(--danger-soft); color: var(--danger-ink); }
+
+    .media-del {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: var(--popover-bg);
+      box-shadow: 0 0 0 1px var(--hairline-strong);
+      opacity: 0;
+      transition: opacity 0.15s var(--ease), background 0.15s var(--ease), color 0.15s var(--ease);
+    }
+
+    .media-tile:hover .media-del,
+    .media-del:focus-visible { opacity: 1; }
+
+    @media (hover: none) { .media-del { opacity: 1; } }
+
+    /* En el selector, las imagenes de otra medida no se pueden elegir */
+    /* ---------- Seleccion multiple ----------
+       Recuadro con el mouse sobre el area (tambien empezando encima de una
+       tarjeta), Ctrl/Shift para sumar, casilla en cada tarjeta para tactil. */
+    .media-area {
+      position: relative;
+      min-height: 52vh;
+      padding-bottom: 110px;
+    }
+
+    .media-area.is-dragging,
+    .media-area.is-dragging * { user-select: none; cursor: crosshair !important; }
+    .media-area.is-dragging .media-tile:hover { transform: none; }
+
+    .media-marquee {
+      position: fixed;
+      z-index: 60;
+      border: 1px solid var(--primary);
+      background: rgba(80,215,83,0.1);
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    .media-check {
+      position: absolute;
+      top: 8px; left: 8px;
+      z-index: 2;
+      width: 24px; height: 24px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border-radius: 8px;
+      border: 1.5px solid rgba(255,255,255,0.9);
+      background: rgba(10,10,11,0.4);
+      color: transparent;
+      cursor: pointer;
+      opacity: 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      transition: opacity 0.15s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease), transform 0.1s var(--ease);
+    }
+
+    .media-check .ico { width: 14px; height: 14px; stroke-width: 2.6; }
+    .media-check:active { transform: scale(0.9); }
+    .media-check:focus-visible { outline: none; opacity: 1; box-shadow: 0 0 0 3px var(--primary-ring); }
+
+    .media-tile:hover .media-check,
+    .media-grid.has-selection .media-check,
+    .media-tile.is-selected .media-check { opacity: 1; }
+
+    @media (hover: none) { .media-check { opacity: 1; } }
+
+    .media-tile.is-selected {
+      border-color: var(--primary);
+      box-shadow: var(--shadow), 0 0 0 2px var(--primary-ring);
+    }
+
+    .media-tile.is-selected .media-check {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--on-primary);
+    }
+
+    .media-tile.is-selected .media-thumb::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(80,215,83,0.12);
+      pointer-events: none;
+    }
+
+    /* Barra flotante de la seleccion */
+    .selection-bar {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 6px 6px 16px;
+      border-radius: 14px;
+      background: var(--popover-bg);
+      border: 1px solid var(--hairline-strong);
+      box-shadow: var(--shadow-pop);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transform: translate(-50%, 16px);
+      opacity: 0;
+      visibility: hidden;
+      transition: transform 0.32s var(--ease-sheet), opacity 0.2s var(--ease), visibility 0s linear 0.32s;
+      white-space: nowrap;
+    }
+
+    .selection-bar.visible {
+      transform: translate(-50%, 0);
+      opacity: 1;
+      visibility: visible;
+      transition: transform 0.32s var(--ease-sheet), opacity 0.2s var(--ease), visibility 0s;
+    }
+
+    .selection-bar .count { font-weight: 700; font-size: 0.875rem; margin-right: 2px; }
+    .selection-bar .detail { font-family: var(--font-mono); font-size: 0.71875rem; color: var(--ink-3); margin-right: 8px; }
+    .selection-bar .sep { width: 1px; height: 20px; background: var(--hairline-strong); margin: 0 2px; }
+
+    /* Con la barra visible, los toasts suben para no taparla */
+    body.has-media-selection .toast { bottom: 92px; }
+
+    @media (max-width: 720px) {
+      .selection-bar { left: 16px; right: 16px; transform: translateY(16px); padding-left: 12px; }
+      .selection-bar.visible { transform: none; }
+      .selection-bar .detail, #media-sel-all, .selection-bar .sep { display: none; }
+      .selection-bar .count { margin-right: auto; }
+    }
+
+    /* En los hijos y no en la tarjeta: la animacion de entrada fija su opacidad */
+    .media-tile.is-disabled > * { opacity: 0.38; filter: grayscale(0.6); }
+    .media-tile.is-disabled .media-thumb { cursor: not-allowed; }
+    .media-tile.is-disabled:hover { transform: none; border-color: var(--hairline); }
+
+    .media-grid-state {
+      grid-column: 1 / -1;
+      padding: 48px 16px;
+      text-align: center;
+      color: var(--ink-3);
+      font-size: 0.8125rem;
+    }
+
+    .media-skeleton {
+      aspect-ratio: 4 / 3.9;
+      border-radius: 14px;
+      background: linear-gradient(90deg, rgba(var(--tint),0.04), rgba(var(--tint),0.08), rgba(var(--tint),0.04));
+      background-size: 200% 100%;
+      animation: shimmer 1.4s linear infinite;
+    }
+
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* Detalle de una imagen */
+    .media-detail {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .media-detail .media-thumb {
+      aspect-ratio: auto;
+      height: min(52vh, 440px);
+      border-radius: 12px;
+      cursor: default;
+    }
+
+    .media-detail .media-thumb img {
+      inset: 14px;
+      width: calc(100% - 28px);
+      height: calc(100% - 28px);
+    }
+
+    .media-props { display: grid; gap: 12px; font-size: 0.8125rem; }
+
+    .media-props dt {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 2px;
+    }
+
+    .media-props dd { color: var(--ink); word-break: break-all; }
+    .media-props dd.mono { font-family: var(--font-mono); font-size: 0.75rem; }
+    .media-props ul { list-style: none; display: grid; gap: 4px; }
+
+    .media-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .media-blocked {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--ink-3);
+      line-height: 1.5;
+    }
+
+    .modal.modal-xl { max-width: 980px; }
+
+    .picker-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .picker-head .media-summary { flex: 1; }
+
     /* ========== ACCESIBILIDAD ========== */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -1587,7 +2126,9 @@
       .slide-actions { grid-column: 1 / -1; justify-content: flex-end; opacity: 1; }
     }
 
-    @media (max-width: 1080px) {
+    /* Con tres pestanas y el selector de local, los rotulos de los botones
+       del header no entran por debajo de ~1440px: quedan solo los iconos */
+    @media (max-width: 1440px) {
       .header-actions .btn .label { display: none; }
       .header-actions .btn { padding: 0 9px; }
     }
@@ -1606,8 +2147,15 @@
       .header-brand { width: 100%; justify-content: space-between; gap: 12px; }
       .brand-name span { display: none; }
       .header-actions { width: 100%; }
+      .header-actions { flex-wrap: wrap; row-gap: 8px; }
       .screen-picker { flex: 1; }
       .screen-picker select { max-width: none; flex: 1; }
+      .store-picker { flex-basis: 100%; }
+      .user-row { grid-template-columns: 1fr; }
+      .media-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+      .media-detail { grid-template-columns: 1fr; }
+      .media-detail .media-thumb { height: 38vh; }
+      .view-switch button { padding: 0 10px; }
       .admin-main { padding: 24px 16px 64px; }
       .page-head h1 { font-size: 1.625rem; }
       .card { padding: 18px; }
@@ -1627,7 +2175,6 @@
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
     <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3M16 16l4-4-4-4M20 12H9"/></symbol>
     <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
     <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></symbol>
@@ -1648,6 +2195,9 @@
     <symbol id="i-led" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="10" height="17" rx="1.5"/><rect x="15.5" y="3.5" width="5" height="8" rx="1.5"/></symbol>
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5.5v13l11-6.5z"/></symbol>
     <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9.5 5.5 4.5h13L20 9.5M4 9.5h16M4 9.5a2.67 2.67 0 0 0 5.33 0 2.67 2.67 0 0 0 5.34 0 2.67 2.67 0 0 0 5.33 0M5.5 12.2V19.5h13v-7.3M10 19.5v-4.5h4v4.5"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5a6.5 6.5 0 0 1 13 0M16 5.2a3.5 3.5 0 0 1 0 6.6M18.5 14a6.5 6.5 0 0 1 3 5.5"/></symbol>
     <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
   </svg>
 
@@ -1680,6 +2230,25 @@
     <div class="login-foot">HomePoint &middot; Cartelera digital</div>
   </div>
 
+  <!-- ============================== SIN PUNTO DE VENTA ============================== -->
+  <!-- Cuenta sin rol o sin locales asignados, o cuenta de reproductor -->
+  <div id="access-gate" hidden>
+    <div class="login-box">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-name">HomePoint<span>Studio</span></span>
+      </div>
+      <h1 class="login-title" id="gate-title">Sin punto de venta asignado</h1>
+      <p class="login-sub" id="gate-text" style="margin-bottom:0"></p>
+      <div class="gate-meta">
+        <div id="gate-email"></div>
+        <div class="uid"><span id="gate-uid"></span><button type="button" class="icon-btn" id="gate-copy-uid" title="Copiar UID" aria-label="Copiar UID"><svg class="ico"><use href="#i-copy"/></svg></button></div>
+      </div>
+      <button class="btn btn-outline btn-full" id="gate-logout" style="height:44px"><svg class="ico"><use href="#i-logout"/></svg>Cerrar sesion</button>
+    </div>
+    <div class="login-foot">HomePoint &middot; Cartelera digital</div>
+  </div>
+
   <!-- ============================== PANEL ADMIN ============================== -->
   <div id="admin-panel">
     <header class="admin-header">
@@ -1692,9 +2261,16 @@
           <span class="view-switch-indicator" aria-hidden="true"></span>
           <button type="button" role="tab" data-view="cartelera" class="active" aria-selected="true"><span class="dot"></span>Cartelera</button>
           <button type="button" role="tab" data-view="led" aria-selected="false"><span class="dot"></span>Pantallas LED</button>
+          <button type="button" role="tab" data-view="media" aria-selected="false"><span class="dot"></span>Imagenes</button>
         </nav>
       </div>
       <div class="header-actions">
+        <label class="screen-picker store-picker" id="store-picker" title="Punto de venta que estas administrando" hidden>
+          <svg class="ico"><use href="#i-store"/></svg>
+          <span class="prefix">Local</span>
+          <select id="target-store" aria-label="Punto de venta"></select>
+          <span class="store-fixed" id="store-fixed" hidden></span>
+        </label>
         <label class="screen-picker" title="Pantalla que estas editando">
           <svg class="ico"><use href="#i-screen"/></svg>
           <span class="prefix">Pantalla</span>
@@ -1705,7 +2281,7 @@
         <button class="btn btn-ghost btn-sm" id="btn-add-screen" title="Agregar pantalla"><svg class="ico"><use href="#i-plus"/></svg><span class="label">Nueva</span></button>
         <span class="header-sep"></span>
         <button class="btn btn-ghost btn-sm" id="btn-config" title="Configuracion de la pantalla"><svg class="ico"><use href="#i-sliders"/></svg><span class="label">Configuracion</span></button>
-        <button class="btn btn-ghost btn-sm" id="btn-history" title="Historial de cambios"><svg class="ico"><use href="#i-clock"/></svg><span class="label">Historial</span></button>
+        <button class="btn btn-ghost btn-sm" id="btn-stores" title="Puntos de venta y accesos" hidden><svg class="ico"><use href="#i-users"/></svg><span class="label">Accesos</span></button>
         <span class="header-sep"></span>
         <div class="theme-switch" role="radiogroup" aria-label="Tema">
           <button type="button" role="radio" data-theme-choice="light" aria-checked="false" title="Modo claro" aria-label="Modo claro"><svg class="ico"><use href="#i-sun"/></svg></button>
@@ -1723,7 +2299,7 @@
             <div>
               <div class="page-eyebrow"><svg class="ico"><use href="#i-layers"/></svg>Cartelera</div>
               <h1>Slides en pantalla</h1>
-              <div class="sub">Contenido del reproductor de <code id="cartelera-screen-name">default</code>. Los cambios se publican en vivo.</div>
+              <div class="sub">Contenido de <code id="cartelera-screen-name">default</code> en <strong class="store-name-label">tu punto de venta</strong>. Los cambios se publican en vivo.</div>
             </div>
             <div class="page-actions">
               <a class="btn btn-outline btn-sm" id="cartelera-link" href="index.html" target="_blank" rel="noopener"><svg class="ico"><use href="#i-external"/></svg>Abrir reproductor</a>
@@ -1871,7 +2447,7 @@
             <div>
               <div class="page-eyebrow"><svg class="ico"><use href="#i-led"/></svg>Pantallas LED</div>
               <h1>Salida para consola de split</h1>
-              <div class="sub">Pares de imagenes de <code id="led-screen-name">default</code> &middot; A <span class="mono">256&times;512</span> en (0,0) &middot; B <span class="mono">128&times;256</span> en (256,0)</div>
+              <div class="sub">Pares de imagenes de <code id="led-screen-name">default</code> en <strong class="store-name-label">tu punto de venta</strong> &middot; A <span class="mono">256&times;512</span> en (0,0) &middot; B <span class="mono">128&times;256</span> en (256,0)</div>
             </div>
             <div class="page-actions">
               <button type="button" class="btn btn-outline btn-sm" id="btn-copy-led-link"><svg class="ico"><use href="#i-copy"/></svg>Copiar enlace</button>
@@ -1882,8 +2458,11 @@
 
           <div class="workspace-grid">
             <!-- Composicion del nuevo par -->
-            <div class="card">
-              <div class="card-title"><span class="title">Nuevo par</span><span class="meta">384&times;512</span></div>
+            <div class="card led-form-card" id="led-form-card">
+              <div class="card-title">
+                <span class="title"><span id="led-form-title">Nuevo par</span><span class="edit-pill" id="led-edit-pill" hidden>Editando</span></span>
+                <span class="meta" id="led-form-meta">384&times;512</span>
+              </div>
 
               <div class="led-stage-wrap">
                 <div class="led-stage">
@@ -1899,6 +2478,10 @@
                 </div>
               </div>
               <div class="led-stage-caption">Vista a escala de la salida. Arrastra o haz clic en cada zona;<br>la imagen se ajusta a la medida exacta en PNG.</div>
+              <div class="led-library-row">
+                <button type="button" class="btn btn-outline btn-sm" data-library-slot="a"><svg class="ico"><use href="#i-image"/></svg>A desde biblioteca</button>
+                <button type="button" class="btn btn-outline btn-sm" data-library-slot="b"><svg class="ico"><use href="#i-image"/></svg>B desde biblioteca</button>
+              </div>
 
               <input type="file" id="led-file-a" accept="image/*" style="display:none">
               <input type="file" id="led-file-b" accept="image/*" style="display:none">
@@ -1917,7 +2500,7 @@
               </div>
 
               <div class="form-actions">
-                <button class="btn btn-primary" id="btn-add-led-pair"><svg class="ico"><use href="#i-plus"/></svg>Agregar a la rotacion</button>
+                <button class="btn btn-primary" id="btn-add-led-pair"><svg class="ico"><use href="#i-plus"/></svg><span id="led-submit-label">Agregar a la rotacion</span></button>
                 <button class="btn btn-outline" id="btn-clear-led-form">Limpiar</button>
               </div>
             </div>
@@ -1928,6 +2511,7 @@
                 <span class="title">En rotacion <span class="badge" id="led-count">0</span></span>
                 <span class="meta" id="led-cycle"></span>
               </div>
+              <div class="list-hint" id="led-list-hint" hidden>Doble clic en un par para editarlo &middot; arrastra para reordenar</div>
               <ul class="slide-list" id="led-pair-list"></ul>
               <div class="empty-state" id="empty-led-pairs">
                 <div class="empty-icon"><svg class="ico"><use href="#i-led"/></svg></div>
@@ -1935,6 +2519,46 @@
                 <div class="text">Compone el primero cargando las imagenes A y B en el lienzo.</div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- ============================== VISTA: IMAGENES ============================== -->
+        <!-- Archivos subidos a Firebase Storage por el local activo -->
+        <section class="view" id="view-media" hidden>
+          <div class="page-head">
+            <div>
+              <div class="page-eyebrow"><svg class="ico"><use href="#i-image"/></svg>Biblioteca</div>
+              <h1>Imagenes subidas</h1>
+              <div class="sub">Biblioteca compartida entre todos los puntos de venta: cualquier local puede usar una imagen subida por otro. Una imagen en uso, en cualquier local, no se puede eliminar hasta quitarla de sus slides o pares.</div>
+            </div>
+            <div class="page-actions">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-media-refresh"><svg class="ico"><use href="#i-refresh"/></svg>Actualizar</button>
+            </div>
+          </div>
+
+          <div class="media-toolbar">
+            <div class="media-filters" id="media-filters" role="group" aria-label="Filtrar imagenes">
+              <button type="button" class="store-chip" data-filter="all" aria-pressed="true">Todas</button>
+              <button type="button" class="store-chip" data-filter="slide" aria-pressed="false">Cartelera</button>
+              <button type="button" class="store-chip" data-filter="led" aria-pressed="false">LED</button>
+              <button type="button" class="store-chip" data-filter="unused" aria-pressed="false">Sin uso</button>
+              <button type="button" class="store-chip" data-filter="mine" aria-pressed="false"><span>Subidas en <span class="store-name-label">este local</span></span></button>
+            </div>
+            <div class="media-summary" id="media-summary"></div>
+          </div>
+
+          <!-- Arrastrar sobre el area dibuja un recuadro de seleccion -->
+          <div class="media-area" id="media-area">
+            <div class="media-grid" id="media-grid"></div>
+          </div>
+
+          <div class="selection-bar" id="media-selection-bar" role="region" aria-label="Seleccion de imagenes">
+            <span class="count" id="media-sel-count">0 seleccionadas</span>
+            <span class="detail" id="media-sel-detail"></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="media-sel-all" title="Seleccionar todas (Ctrl+A)">Seleccionar todas</button>
+            <span class="sep"></span>
+            <button type="button" class="btn btn-danger btn-sm" id="media-sel-delete" title="Eliminar seleccionadas (Supr)"><svg class="ico"><use href="#i-trash"/></svg><span class="label">Eliminar</span></button>
+            <button type="button" class="icon-btn" id="media-sel-clear" title="Quitar seleccion (Esc)" aria-label="Quitar seleccion"><svg class="ico"><use href="#i-close"/></svg></button>
           </div>
         </section>
       </main>
@@ -2004,18 +2628,80 @@
     </div>
   </div>
 
-  <!-- ============================== MODAL: HISTORIAL ============================== -->
-  <div class="modal-overlay" id="history-modal" role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
-    <div class="modal">
+  <!-- ============================== MODAL: DETALLE DE IMAGEN ============================== -->
+  <div class="modal-overlay" id="media-modal" role="dialog" aria-modal="true" aria-labelledby="media-modal-title">
+    <div class="modal modal-xl">
       <div class="modal-header">
         <div>
-          <h2 id="history-modal-title">Historial</h2>
-          <div class="sub">Ultimos 50 cambios en todas las pantallas</div>
+          <h2 id="media-modal-title">Imagen</h2>
+          <div class="sub" id="media-modal-sub"></div>
         </div>
-        <button class="modal-close" onclick="closeModal('history-modal')" aria-label="Cerrar"><svg class="ico"><use href="#i-close"/></svg></button>
+        <button class="modal-close" onclick="closeModal('media-modal')" aria-label="Cerrar"><svg class="ico"><use href="#i-close"/></svg></button>
       </div>
-      <div id="history-list">
-        <div class="empty-state"><div class="title">Sin historial</div></div>
+      <div class="media-detail">
+        <div class="media-thumb" id="media-detail-thumb"><img id="media-detail-img" alt=""></div>
+        <div>
+          <dl class="media-props" id="media-detail-props"></dl>
+          <div class="media-actions">
+            <a class="btn btn-outline btn-sm" id="media-detail-open" href="#" target="_blank" rel="noopener"><svg class="ico"><use href="#i-external"/></svg>Abrir original</a>
+            <button type="button" class="btn btn-outline btn-sm" id="media-detail-copy"><svg class="ico"><use href="#i-copy"/></svg>Copiar enlace</button>
+            <button type="button" class="btn btn-danger btn-sm" id="media-detail-delete"><svg class="ico"><use href="#i-trash"/></svg>Eliminar</button>
+          </div>
+          <div class="media-blocked" id="media-detail-blocked" hidden></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== MODAL: ELEGIR IMAGEN DE LA BIBLIOTECA ============================== -->
+  <div class="modal-overlay" id="media-picker-modal" role="dialog" aria-modal="true" aria-labelledby="media-picker-title">
+    <div class="modal modal-xl">
+      <div class="modal-header">
+        <div>
+          <h2 id="media-picker-title">Elegir imagen</h2>
+          <div class="sub" id="media-picker-sub"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal('media-picker-modal')" aria-label="Cerrar"><svg class="ico"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="picker-head">
+        <div class="media-summary" id="media-picker-summary"></div>
+        <button type="button" class="btn btn-secondary btn-sm" id="media-picker-upload"><svg class="ico"><use href="#i-upload"/></svg>Subir una nueva</button>
+      </div>
+      <div class="media-grid" id="media-picker-grid"></div>
+    </div>
+  </div>
+
+  <!-- ============================== MODAL: PUNTOS DE VENTA Y ACCESOS (superadmin) ============================== -->
+  <div class="modal-overlay" id="stores-modal" role="dialog" aria-modal="true" aria-labelledby="stores-modal-title">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2 id="stores-modal-title">Puntos de venta y accesos</h2>
+          <div class="sub">Cada local tiene su propio contenido y pantallas</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('stores-modal')" aria-label="Cerrar"><svg class="ico"><use href="#i-close"/></svg></button>
+      </div>
+
+      <div class="modal-section-label">Puntos de venta</div>
+      <div class="store-rows" id="store-rows"></div>
+      <div class="inline-form form-group">
+        <input type="text" id="new-store-name" placeholder="Nombre del nuevo punto de venta" maxlength="60">
+        <button type="button" class="btn btn-secondary" id="btn-create-store"><svg class="ico"><use href="#i-plus"/></svg>Agregar</button>
+      </div>
+
+      <div class="modal-section-label">Usuarios</div>
+      <p class="modal-note">Las cuentas se crean en Firebase Console &rarr; Authentication y aparecen aca despues de su primer ingreso. Para los TV y carteles LED usa una cuenta con rol <strong>Reproductor</strong> por local.</p>
+      <div class="user-rows" id="user-rows"></div>
+
+      <div id="migration-section" hidden>
+        <div class="modal-section-label">Contenido anterior</div>
+        <div class="migration-box">
+          <div class="status" id="migration-status"></div>
+          <div class="actions">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-migrate" hidden>Migrar a Punto de Venta 1</button>
+            <button type="button" class="btn btn-danger btn-sm" id="btn-purge-legacy" hidden><svg class="ico"><use href="#i-trash"/></svg>Eliminar datos antiguos</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -2113,6 +2799,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
   <!-- Configuración compartida (Google Sheets config) -->
   <script src="config.js"></script>
+  <!-- Puntos de venta: rutas, roles y local recordado -->
+  <script src="store-session.js"></script>
 
   <script>
     /* ==========================================================
@@ -2145,6 +2833,13 @@
 
     var currentScreen = 'default';
     var slides = [];
+
+    // Punto de venta activo y permisos de la cuenta (StoreSession.resolve)
+    var currentStore = null;
+    var storeCtx = null;
+    var DEFAULT_STORES = { pv1: 'Punto de Venta 1', pv2: 'Punto de Venta 2' };
+    var LEGACY_TARGET_STORE = 'pv1';
+    var ADMIN_STORE_KEY = 'hp_admin_store';
 
     /* ==========================================================
        TEMA CLARO / OSCURO
@@ -2208,9 +2903,12 @@
     auth.onAuthStateChanged(function(user) {
       if (user) {
         document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('admin-panel').classList.add('visible');
-        initAdmin();
+        initAdmin(user);
       } else {
+        detachStoreListeners();
+        currentStore = null;
+        storeCtx = null;
+        document.getElementById('access-gate').hidden = true;
         document.getElementById('login-screen').classList.remove('hidden');
         document.getElementById('admin-panel').classList.remove('visible');
       }
@@ -2250,30 +2948,176 @@
     /* ==========================================================
        INIT ADMIN
        ========================================================== */
-    function initAdmin() {
-      loadScreenList();
-      loadSlides();
-      loadConfig();
-      loadLedPairs();
-      loadHistory();
+    function initAdmin(user) {
       setupEventListeners();
+
+      StoreSession.resolve(db, user)
+        .then(function(ctx) {
+          // El primer ingreso del superadmin crea los locales iniciales
+          if (ctx.isSuper && !Object.keys(ctx.allStores).length) {
+            return seedDefaultStores().then(function() { return StoreSession.resolve(db, user); });
+          }
+          return ctx;
+        })
+        .then(function(ctx) {
+          storeCtx = ctx;
+          if (ctx.role === 'player') {
+            showAccessGate('Cuenta de reproductor',
+              'Esta cuenta es para los TV y carteles LED: puede mostrar contenido pero no editarlo. Ingresa con una cuenta de encargado para administrar el local.');
+            return;
+          }
+          if (!ctx.canEdit || !ctx.stores.length) {
+            showAccessGate('Sin punto de venta asignado',
+              'Tu cuenta todavia no tiene acceso a ningun local. Pide a un administrador general que te habilite desde "Accesos".');
+            return;
+          }
+
+          document.getElementById('access-gate').hidden = true;
+          document.getElementById('admin-panel').classList.add('visible');
+          document.getElementById('btn-stores').hidden = !ctx.isSuper;
+          renderStorePicker();
+
+          var saved = null;
+          try { saved = localStorage.getItem(ADMIN_STORE_KEY); } catch (e) { /* sin storage */ }
+          selectStore(StoreSession.pick(ctx, saved) || ctx.stores[0].id);
+        })
+        .catch(function(err) {
+          showAccessGate('No se pudo cargar tu cuenta',
+            'Revisa la conexion y que las reglas de la base esten publicadas. Detalle: ' + err.message);
+        });
     }
 
-    function loadScreenList() {
-      db.ref('screens').once('value', function(snapshot) {
-        var data = snapshot.val();
-        if (!data) return;
-        var sel = document.getElementById('target-screen');
-        Object.keys(data).forEach(function(screenId) {
-          for (var i = 0; i < sel.options.length; i++) {
-            if (sel.options[i].value === screenId) return;
-          }
-          var opt = document.createElement('option');
-          opt.value = screenId;
-          opt.textContent = screenId;
-          sel.appendChild(opt);
-        });
+    function seedDefaultStores() {
+      var updates = {};
+      Object.keys(DEFAULT_STORES).forEach(function(id) {
+        updates['storeList/' + id] = { name: DEFAULT_STORES[id], createdAt: firebase.database.ServerValue.TIMESTAMP };
       });
+      return db.ref().update(updates);
+    }
+
+    function showAccessGate(title, text) {
+      var user = auth.currentUser;
+      detachStoreListeners();
+      document.getElementById('admin-panel').classList.remove('visible');
+      document.getElementById('gate-title').textContent = title;
+      document.getElementById('gate-text').textContent = text;
+      document.getElementById('gate-email').textContent = user ? user.email : '';
+      document.getElementById('gate-uid').textContent = user ? 'UID: ' + user.uid : '';
+      document.getElementById('access-gate').hidden = false;
+    }
+
+    /* ==========================================================
+       PUNTO DE VENTA ACTIVO
+       Todo lo que se lee o escribe cuelga de stores/{currentStore}.
+       Al cambiar de local se sueltan los listeners del anterior: si no,
+       seguirian llegando (y pisando la UI) los datos del otro local.
+       ========================================================== */
+    var slidesRef = null;
+
+    function storePath() {
+      var args = [currentStore].concat(Array.prototype.slice.call(arguments));
+      return StoreSession.path.apply(null, args);
+    }
+
+    function screenRef(sub) {
+      return db.ref(storePath('screens', currentScreen, sub));
+    }
+
+    function currentStoreName() {
+      var s = StoreSession.findStore(storeCtx, currentStore);
+      return s ? s.name : (currentStore || '');
+    }
+
+    function detachStoreListeners() {
+      if (slidesRef) { slidesRef.off(); slidesRef = null; }
+      if (ledRef) { ledRef.off(); ledRef = null; }
+    }
+
+    function renderStorePicker() {
+      var picker = document.getElementById('store-picker');
+      var sel = document.getElementById('target-store');
+      var fixed = document.getElementById('store-fixed');
+      var stores = storeCtx ? storeCtx.stores : [];
+
+      sel.innerHTML = '';
+      stores.forEach(function(s) {
+        var opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name;
+        sel.appendChild(opt);
+      });
+      if (currentStore) sel.value = currentStore;
+
+      // Con un solo local no hay nada que elegir: queda como rotulo
+      var single = stores.length === 1;
+      sel.hidden = single;
+      fixed.hidden = !single;
+      fixed.textContent = single ? stores[0].name : '';
+      picker.hidden = !stores.length;
+    }
+
+    function selectStore(storeId) {
+      detachStoreListeners();
+      currentStore = storeId;
+      try { localStorage.setItem(ADMIN_STORE_KEY, storeId); } catch (e) { /* silenciar */ }
+      document.getElementById('target-store').value = storeId;
+
+      var name = currentStoreName();
+      document.querySelectorAll('.store-name-label').forEach(function(el) { el.textContent = name; });
+
+      // Un formulario a medio llenar pertenece al local anterior
+      clearForm();
+      clearLedForm();
+      slides = [];
+      ledPairs = [];
+      renderSlideList();
+      renderLedPairList();
+
+      loadScreenList(function() {
+        loadSlides();
+        loadConfig();
+        loadLedPairs();
+      });
+
+      // La biblioteca es comun, pero el uso y el filtro "Este local" cambian.
+      // Abrir un local tambien publica su indice de uso para los demas.
+      resetMedia();
+      publishUsageFor(storeId);
+      if (currentView === 'media') openMediaView();
+    }
+
+    function screenKeyFor(storeId) {
+      return 'hp_admin_screen_' + storeId;
+    }
+
+    // Reconstruye la lista de pantallas del local y vuelve a la ultima
+    // editada en ese local (o a 'default').
+    function loadScreenList(done) {
+      var storeAtCall = currentStore;
+      db.ref(storePath('screens')).once('value')
+        .then(function(snapshot) {
+          if (storeAtCall !== currentStore) return;
+          var ids = Object.keys(snapshot.val() || {}).filter(function(id) { return id !== 'default'; }).sort();
+          ids.unshift('default');
+
+          var sel = document.getElementById('target-screen');
+          sel.innerHTML = '';
+          ids.forEach(function(screenId) {
+            var opt = document.createElement('option');
+            opt.value = screenId;
+            opt.textContent = screenId;
+            sel.appendChild(opt);
+          });
+
+          var saved = null;
+          try { saved = localStorage.getItem(screenKeyFor(currentStore)); } catch (e) { /* sin storage */ }
+          currentScreen = ids.indexOf(saved) >= 0 ? saved : 'default';
+          sel.value = currentScreen;
+          if (done) done();
+        })
+        .catch(function(err) {
+          showToast('No se pudieron cargar las pantallas: ' + err.message, 'error');
+        });
     }
 
     /* ==========================================================
@@ -2288,17 +3132,27 @@
       if (eventListenersListos) return;
       eventListenersListos = true;
 
+      // Selector de punto de venta
+      document.getElementById('target-store').addEventListener('change', function() {
+        if (this.value && this.value !== currentStore) {
+          selectStore(this.value);
+          showToast('Administrando ' + currentStoreName());
+        }
+      });
+
       // Selector de pantalla
       document.getElementById('target-screen').addEventListener('change', function() {
         currentScreen = this.value;
+        try { localStorage.setItem(screenKeyFor(currentStore), currentScreen); } catch (e) { /* silenciar */ }
         loadSlides();
         loadConfig();
         loadLedPairs();
       });
 
-      // Agregar pantalla
+      // Agregar pantalla (dentro del local activo)
       document.getElementById('btn-add-screen').addEventListener('click', function() {
-        var name = prompt('Nombre/ID de la nueva pantalla:');
+        if (!currentStore) return;
+        var name = prompt('Nombre/ID de la nueva pantalla en ' + currentStoreName() + ':');
         if (name && name.trim()) {
           name = name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
           var sel = document.getElementById('target-screen');
@@ -2315,12 +3169,34 @@
           sel.appendChild(opt);
           sel.value = name;
           currentScreen = name;
+          try { localStorage.setItem(screenKeyFor(currentStore), name); } catch (e) { /* silenciar */ }
 
-          // Crear entrada en Firebase
-          db.ref('screens/' + name).set({ content: { slides: [] }, config: {} });
+          // Crear entrada en Firebase. Un nodo con solo arrays/objetos vacios
+          // no se guarda en la Realtime Database: createdAt lo hace persistir.
+          db.ref(storePath('screens', name)).set({ createdAt: firebase.database.ServerValue.TIMESTAMP })
+            .catch(function(err) { showToast('Error al crear la pantalla: ' + err.message, 'error'); });
           loadSlides();
+          loadConfig();
           loadLedPairs();
           showToast('Pantalla "' + name + '" creada');
+        }
+      });
+
+      // Puntos de venta y accesos (solo superadmin)
+      document.getElementById('btn-stores').addEventListener('click', openStoresModal);
+      document.getElementById('btn-create-store').addEventListener('click', createStore);
+      document.getElementById('new-store-name').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') createStore();
+      });
+      document.getElementById('btn-migrate').addEventListener('click', migrateLegacyContent);
+      document.getElementById('btn-purge-legacy').addEventListener('click', purgeLegacyContent);
+
+      // Pantalla sin acceso
+      document.getElementById('gate-logout').addEventListener('click', function() { auth.signOut(); });
+      document.getElementById('gate-copy-uid').addEventListener('click', function() {
+        var uid = auth.currentUser ? auth.currentUser.uid : '';
+        if (navigator.clipboard && uid) {
+          navigator.clipboard.writeText(uid).then(function() { showToast('UID copiado'); });
         }
       });
 
@@ -2387,9 +3263,6 @@
         openModal('config-modal');
       });
 
-      document.getElementById('btn-history').addEventListener('click', function() {
-        openModal('history-modal');
-      });
 
       // Guardar config
       document.getElementById('btn-save-config').addEventListener('click', saveConfig);
@@ -2417,6 +3290,7 @@
 
       // Pantalla LED
       setupLedUploads();
+      setupMediaLibrary();
       setupViewSwitch();
 
       // Precio manual: solo digitos
@@ -2478,7 +3352,7 @@
 
     function uploadToStorage(blob, originalName) {
       var ext = originalName.split('.').pop() || 'jpg';
-      var fileName = 'slides/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.jpg';
+      var fileName = storePath('slides', Date.now() + '_' + Math.random().toString(36).slice(2) + '.jpg');
       var uploadArea = document.getElementById('upload-area');
       var ref = storage.ref(fileName);
       var task = ref.put(blob, { contentType: 'image/jpeg' });
@@ -2501,6 +3375,7 @@
             document.getElementById('preview-img').src = url;
             document.getElementById('image-preview').style.display = 'block';
             showToast('Imagen subida correctamente');
+            markMediaStale();
             resetUploadArea();
           });
         }
@@ -2582,16 +3457,13 @@
       saveSlides();
       clearForm();
       showToast('Slide agregado correctamente');
-      addHistoryEntry('Slide agregado: ' + (slide.title || 'Sin titulo'));
     }
 
     function deleteSlide(index) {
       if (!confirm('Eliminar este slide?')) return;
-      var title = slides[index].title || 'Sin titulo';
       slides.splice(index, 1);
       saveSlides();
       showToast('Slide eliminado');
-      addHistoryEntry('Slide eliminado: ' + title);
     }
 
     function editSlide(index) {
@@ -2651,7 +3523,6 @@
       saveSlides();
       closeModal('edit-modal');
       showToast('Slide actualizado');
-      addHistoryEntry('Slide editado: ' + (slides[index].title || 'Sin titulo'));
     }
 
     function moveSlide(index, direction) {
@@ -2679,17 +3550,22 @@
         updatedAt: firebase.database.ServerValue.TIMESTAMP
       };
 
-      db.ref('screens/' + currentScreen + '/content').set(data)
+      screenRef('content').set(data)
         .then(function() {
           renderSlideList();
+          scheduleUsagePublish();
         })
         .catch(function(err) {
           showToast('Error al guardar: ' + err.message, 'error');
         });
     }
 
+    // Igual que loadLedPairs: se suelta el listener de la pantalla (o local)
+    // anterior antes de engancharse al nuevo.
     function loadSlides() {
-      db.ref('screens/' + currentScreen + '/content').on('value', function(snapshot) {
+      if (slidesRef) slidesRef.off();
+      slidesRef = screenRef('content');
+      slidesRef.on('value', function(snapshot) {
         var data = snapshot.val();
         if (data && data.slides) {
           slides = Array.isArray(data.slides) ? data.slides : Object.values(data.slides);
@@ -2697,27 +3573,32 @@
           slides = [];
         }
         renderSlideList();
+      }, function(err) {
+        showToast('Sin acceso al contenido: ' + err.message, 'error');
       });
     }
 
+    var CONFIG_DEFAULTS = {
+      transitionType: 'fade', transitionSpeed: 1, defaultDuration: 8,
+      primaryColor: '#50d753', bgColor: '#000000'
+    };
+
     function loadConfig() {
-      db.ref('screens/' + currentScreen + '/config').once('value', function(snapshot) {
-        var config = snapshot.val();
-        if (config) {
-          if (config.transitionType) document.getElementById('config-transition').value = config.transitionType;
-          if (config.transitionSpeed) document.getElementById('config-speed').value = config.transitionSpeed;
-          if (config.defaultDuration) document.getElementById('config-duration').value = config.defaultDuration;
-          if (config.primaryColor) {
-            document.getElementById('config-primary-color').value = config.primaryColor;
-            document.getElementById('config-primary-color-text').value = config.primaryColor;
-          }
-          if (config.bgColor) {
-            document.getElementById('config-bg-color').value = config.bgColor;
-            document.getElementById('config-bg-color-text').value = config.bgColor;
-          }
-          document.getElementById('config-show-clock').checked = config.showClock !== false;
-          document.getElementById('config-show-indicators').checked = config.showIndicators !== false;
-        }
+      var refAtCall = storePath('screens', currentScreen, 'config');
+      screenRef('config').once('value', function(snapshot) {
+        if (refAtCall !== storePath('screens', currentScreen, 'config')) return;
+        // Sin config guardada se vuelve a los valores por defecto: si no,
+        // el modal mostraria la de la pantalla o el local anterior.
+        var config = Object.assign({}, CONFIG_DEFAULTS, snapshot.val() || {});
+        document.getElementById('config-transition').value = config.transitionType;
+        document.getElementById('config-speed').value = config.transitionSpeed;
+        document.getElementById('config-duration').value = config.defaultDuration;
+        document.getElementById('config-primary-color').value = config.primaryColor;
+        document.getElementById('config-primary-color-text').value = config.primaryColor;
+        document.getElementById('config-bg-color').value = config.bgColor;
+        document.getElementById('config-bg-color-text').value = config.bgColor;
+        document.getElementById('config-show-clock').checked = config.showClock !== false;
+        document.getElementById('config-show-indicators').checked = config.showIndicators !== false;
       });
     }
 
@@ -2732,55 +3613,14 @@
         showIndicators: document.getElementById('config-show-indicators').checked
       };
 
-      db.ref('screens/' + currentScreen + '/config').set(config)
+      screenRef('config').set(config)
         .then(function() {
           showToast('Configuracion guardada');
           closeModal('config-modal');
-          addHistoryEntry('Configuracion actualizada');
         })
         .catch(function(err) {
           showToast('Error: ' + err.message, 'error');
         });
-    }
-
-    /* ==========================================================
-       HISTORIAL DE CAMBIOS
-       ========================================================== */
-    function addHistoryEntry(message) {
-      var entry = {
-        message: message,
-        screen: currentScreen,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-      };
-
-      db.ref('history').push(entry);
-    }
-
-    function loadHistory() {
-      db.ref('history').orderByChild('timestamp').limitToLast(50).on('value', function(snapshot) {
-        var container = document.getElementById('history-list');
-        var data = snapshot.val();
-
-        if (!data) {
-          container.innerHTML = '<div class="empty-state"><div class="title">Sin historial</div></div>';
-          return;
-        }
-
-        var entries = Object.values(data).sort(function(a, b) {
-          return (b.timestamp || 0) - (a.timestamp || 0);
-        });
-
-        container.innerHTML = '';
-        entries.forEach(function(entry) {
-          var el = document.createElement('div');
-          el.className = 'history-item';
-          var time = entry.timestamp ? new Date(entry.timestamp).toLocaleString('es-ES') : '';
-          el.innerHTML =
-            '<div>' + escapeHtml(entry.message) + '</div>' +
-            '<div class="time">' + time + ' · ' + escapeHtml(entry.screen || 'default') + '</div>';
-          container.appendChild(el);
-        });
-      });
     }
 
     /* ==========================================================
@@ -2896,29 +3736,36 @@
 
     /* ==========================================================
        ESPACIO DE TRABAJO: CARTELERA / PANTALLAS LED
-       Las dos vistas comparten el selector de pantalla y el historial;
+       Las dos vistas comparten el selector de pantalla;
        "Configuracion" (transiciones, reloj) solo aplica a la cartelera.
        ========================================================== */
     var ADMIN_VIEW_KEY = 'hp_admin_view';
 
+    var ADMIN_VIEWS = ['cartelera', 'led', 'media'];
+    var currentView = 'cartelera';
+
     function getInitialView() {
-      if (location.hash === '#led') return 'led';
-      if (location.hash === '#cartelera') return 'cartelera';
+      var fromHash = location.hash.slice(1);
+      if (ADMIN_VIEWS.indexOf(fromHash) >= 0) return fromHash;
       try { return localStorage.getItem(ADMIN_VIEW_KEY) || 'cartelera'; } catch (e) { return 'cartelera'; }
     }
 
     function switchView(view) {
-      if (view !== 'led') view = 'cartelera';
+      if (ADMIN_VIEWS.indexOf(view) < 0) view = 'cartelera';
+      currentView = view;
 
       document.querySelectorAll('.view-switch button').forEach(function(btn) {
         var active = btn.dataset.view === view;
         btn.classList.toggle('active', active);
         btn.setAttribute('aria-selected', active ? 'true' : 'false');
       });
-      document.getElementById('view-cartelera').hidden = view !== 'cartelera';
-      document.getElementById('view-led').hidden = view !== 'led';
-      document.getElementById('btn-config').style.display = view === 'led' ? 'none' : '';
+      ADMIN_VIEWS.forEach(function(v) {
+        document.getElementById('view-' + v).hidden = v !== view;
+      });
+      document.getElementById('btn-config').style.display = view === 'cartelera' ? '' : 'none';
       positionViewIndicator();
+      if (view === 'media') openMediaView();
+      else if (Object.keys(mediaSel.paths).length) clearMediaSelection();
 
       try { localStorage.setItem(ADMIN_VIEW_KEY, view); } catch (e) { /* silenciar */ }
       history.replaceState(null, '', '#' + view);
@@ -2947,7 +3794,7 @@
        PANTALLA LED (2 IMÁGENES)
        led.html dibuja A en (0,0) 256x512 y B en (256,0) 128x256 para
        que la consola de split lea cada region. Los datos viven en
-       screens/{id}/led, separados de content y config.
+       stores/{local}/screens/{id}/led, separados de content y config.
        ========================================================== */
     var LED_SLOTS = {
       a: { w: 256, h: 512 },
@@ -2990,6 +3837,9 @@
 
       document.getElementById('btn-add-led-pair').addEventListener('click', addLedPair);
       document.getElementById('btn-clear-led-form').addEventListener('click', clearLedForm);
+      document.querySelectorAll('[data-library-slot]').forEach(function(btn) {
+        btn.addEventListener('click', function() { openMediaPicker(this.dataset.librarySlot); });
+      });
       document.getElementById('btn-copy-led-link').addEventListener('click', copyLedLink);
     }
 
@@ -3059,7 +3909,7 @@
     }
 
     function uploadLedBlob(blob, slot) {
-      var fileName = 'slides/led_' + Date.now() + '_' + Math.random().toString(36).slice(2) + '_' + slot + '.png';
+      var fileName = storePath('slides', 'led_' + Date.now() + '_' + Math.random().toString(36).slice(2) + '_' + slot + '.png');
       var area = document.getElementById('led-upload-' + slot);
       var task = storage.ref(fileName).put(blob, { contentType: 'image/png' });
 
@@ -3075,6 +3925,7 @@
           },
           reject,
           function() {
+            markMediaStale();
             task.snapshot.ref.getDownloadURL().then(resolve, reject);
           }
         );
@@ -3092,18 +3943,98 @@
     }
 
     function clearLedForm() {
-      ['a', 'b'].forEach(function(slot) {
-        document.getElementById('led-url-' + slot).value = '';
-        document.getElementById('led-preview-' + slot).removeAttribute('src');
-        document.getElementById('led-upload-' + slot).classList.remove('has-image');
-        resetLedUploadArea(slot);
-      });
+      ['a', 'b'].forEach(function(slot) { setLedSlotImage(slot, ''); });
       document.getElementById('led-title').value = '';
       document.getElementById('led-duration').value = '10';
+      setLedEditMode(null);
+    }
+
+    // Carga una URL ya subida en la zona A o B (o la vacia con url = '')
+    function setLedSlotImage(slot, url) {
+      document.getElementById('led-url-' + slot).value = url || '';
+      var preview = document.getElementById('led-preview-' + slot);
+      if (url) preview.src = url;
+      else preview.removeAttribute('src');
+      document.getElementById('led-upload-' + slot).classList.toggle('has-image', !!url);
+      resetLedUploadArea(slot);
+    }
+
+    /* ---------- Edicion de un par en rotacion ----------
+       El par se identifica por createdAt y no por su posicion: si otra
+       sesion reordena la lista mientras se edita, se guarda igual en el
+       par correcto. */
+    var ledEditKey = null;
+
+    function findLedPairIndex(key) {
+      if (key === null) return -1;
+      for (var i = 0; i < ledPairs.length; i++) {
+        if (ledPairs[i] && ledPairs[i].createdAt === key) return i;
+      }
+      return -1;
+    }
+
+    function setLedEditMode(key) {
+      ledEditKey = key;
+      var editing = key !== null;
+      var index = findLedPairIndex(key);
+      document.getElementById('led-form-card').classList.toggle('is-editing', editing);
+      document.getElementById('led-edit-pill').hidden = !editing;
+      document.getElementById('led-form-title').textContent = editing
+        ? 'Par ' + String(index + 1).padStart(2, '0')
+        : 'Nuevo par';
+      document.getElementById('led-submit-label').textContent = editing ? 'Guardar cambios' : 'Agregar a la rotacion';
+      document.getElementById('btn-clear-led-form').textContent = editing ? 'Cancelar' : 'Limpiar';
+      document.querySelector('#btn-add-led-pair .ico use').setAttribute('href', editing ? '#i-edit' : '#i-plus');
+      document.querySelectorAll('#led-pair-list .slide-item').forEach(function(li) {
+        li.classList.toggle('is-editing', editing && parseInt(li.dataset.index, 10) === index);
+      });
+    }
+
+    function editLedPair(index) {
+      var pair = ledPairs[index];
+      if (!pair) return;
+      // Pares viejos sin createdAt: se les asigna uno para poder seguirlos
+      if (!pair.createdAt) pair.createdAt = Date.now() + index;
+
+      setLedSlotImage('a', pair.imageA || '');
+      setLedSlotImage('b', pair.imageB || '');
+      document.getElementById('led-title').value = pair.title || '';
+      document.getElementById('led-duration').value = pair.duration || 10;
+      setLedEditMode(pair.createdAt);
+
+      var card = document.getElementById('led-form-card');
+      if (card.getBoundingClientRect().top < 64) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('led-title').focus({ preventScroll: true });
+    }
+
+    function saveLedPairEdit(imageA, imageB) {
+      var index = findLedPairIndex(ledEditKey);
+      if (index < 0) {
+        showToast('Ese par ya no existe: se elimino desde otra sesion', 'error');
+        clearLedForm();
+        return;
+      }
+      var pair = ledPairs[index];
+      pair.title = document.getElementById('led-title').value.trim();
+      pair.imageA = imageA;
+      pair.imageB = imageB;
+      pair.duration = parseInt(document.getElementById('led-duration').value) || 10;
+      pair.updatedAt = Date.now();
+
+      saveLedPairs();
+      clearLedForm();
+      showToast('Par ' + String(index + 1).padStart(2, '0') + ' actualizado');
+    }
+
+    // El local de un reproductor sale de la cuenta con la que se loguea; pv=
+    // solo preselecciona entre los locales de esa cuenta (util al superadmin
+    // para previsualizar) y nunca da acceso a uno ajeno.
+    function playerQuery() {
+      return '?s=' + encodeURIComponent(currentScreen) + '&pv=' + encodeURIComponent(currentStore || '');
     }
 
     function ledOutputUrl() {
-      return new URL('led.html?s=' + encodeURIComponent(currentScreen), location.href).toString();
+      return new URL('led.html' + playerQuery(), location.href).toString();
     }
 
     function copyLedLink() {
@@ -3126,6 +4057,11 @@
         return;
       }
 
+      if (ledEditKey !== null) {
+        saveLedPairEdit(imageA, imageB);
+        return;
+      }
+
       var pair = {
         title: document.getElementById('led-title').value.trim(),
         imageA: imageA,
@@ -3139,16 +4075,14 @@
       saveLedPairs();
       clearLedForm();
       showToast('Par LED agregado');
-      addHistoryEntry('Par LED agregado: ' + (pair.title || 'Sin titulo'));
     }
 
     function deleteLedPair(index) {
       if (!confirm('Eliminar este par LED?')) return;
-      var title = ledPairs[index].title || 'Sin titulo';
+      if (ledPairs[index] && ledPairs[index].createdAt === ledEditKey) clearLedForm();
       ledPairs.splice(index, 1);
       saveLedPairs();
       showToast('Par LED eliminado');
-      addHistoryEntry('Par LED eliminado: ' + title);
     }
 
     function moveLedPair(index, direction) {
@@ -3167,11 +4101,14 @@
     }
 
     function saveLedPairs() {
-      db.ref('screens/' + currentScreen + '/led').set({
+      screenRef('led').set({
         pairs: ledPairs,
         updatedAt: firebase.database.ServerValue.TIMESTAMP
       })
-        .then(renderLedPairList)
+        .then(function() {
+          renderLedPairList();
+          scheduleUsagePublish();
+        })
         .catch(function(err) {
           showToast('Error al guardar: ' + err.message, 'error');
         });
@@ -3180,8 +4117,10 @@
     // Se suelta el listener de la pantalla anterior: si no, al cambiar de
     // pantalla seguirian llegando (y pisando la lista) los pares de la vieja.
     function loadLedPairs() {
+      // El par en edicion pertenece a la pantalla anterior
+      if (ledEditKey !== null) clearLedForm();
       if (ledRef) ledRef.off();
-      ledRef = db.ref('screens/' + currentScreen + '/led');
+      ledRef = screenRef('led');
       ledRef.on('value', function(snapshot) {
         var data = snapshot.val();
         ledPairs = data && data.pairs
@@ -3195,9 +4134,9 @@
 
     // Enlaces y rotulos que nombran la pantalla actual, en ambas vistas
     function updateScreenLinks() {
-      var q = '?s=' + encodeURIComponent(currentScreen);
+      var q = playerQuery();
       document.getElementById('led-link').href = 'led.html' + q;
-      document.getElementById('led-link-test').href = 'led.html' + q + '&test=1';
+      document.getElementById('led-link-test').href = 'led.html?s=' + encodeURIComponent(currentScreen) + '&test=1';
       document.getElementById('led-screen-name').textContent = currentScreen;
       document.getElementById('cartelera-link').href = 'index.html' + q;
       document.getElementById('cartelera-screen-name').textContent = currentScreen;
@@ -3215,12 +4154,21 @@
 
       list.innerHTML = '';
       empty.style.display = ledPairs.length ? 'none' : 'block';
+      document.getElementById('led-list-hint').hidden = !ledPairs.length;
 
       ledPairs.forEach(function(pair, index) {
         var li = document.createElement('li');
-        li.className = 'slide-item' + (pair.active === false ? ' is-off' : '');
+        li.className = 'slide-item' + (pair.active === false ? ' is-off' : '') +
+          (ledEditKey !== null && pair.createdAt === ledEditKey ? ' is-editing' : '');
         li.draggable = true;
         li.dataset.index = index;
+        li.title = 'Doble clic para editar';
+
+        // Doble clic carga el par en el lienzo; los botones de accion no cuentan
+        li.addEventListener('dblclick', function(e) {
+          if (e.target.closest('.slide-actions')) return;
+          editLedPair(index);
+        });
 
         var thumb = document.createElement('div');
         thumb.className = 'led-thumb';
@@ -3242,6 +4190,7 @@
         actions.innerHTML =
           '<button class="icon-btn" onclick="moveLedPair(' + index + ', -1)" title="Subir" aria-label="Subir">' + icon('up') + '</button>' +
           '<button class="icon-btn" onclick="moveLedPair(' + index + ', 1)" title="Bajar" aria-label="Bajar">' + icon('down') + '</button>' +
+          '<button class="icon-btn" onclick="editLedPair(' + index + ')" title="Editar" aria-label="Editar">' + icon('edit') + '</button>' +
           '<button class="icon-btn" onclick="toggleLedPair(' + index + ')" title="' + (pair.active !== false ? 'Desactivar' : 'Activar') + '" aria-label="Activar o desactivar">' + icon(pair.active !== false ? 'eye' : 'eye-off') + '</button>' +
           '<button class="icon-btn danger" onclick="deleteLedPair(' + index + ')" title="Eliminar" aria-label="Eliminar">' + icon('trash') + '</button>';
 
@@ -3273,6 +4222,1143 @@
 
         list.appendChild(li);
       });
+
+      // El numero del par editado cambia si la lista se reordena
+      if (ledEditKey !== null && findLedPairIndex(ledEditKey) >= 0) setLedEditMode(ledEditKey);
+    }
+
+    /* ==========================================================
+       BIBLIOTECA DE IMAGENES
+       Lista lo que el local subio a Storage (stores/{local}/slides) y,
+       en el local que heredo el contenido anterior, tambien slides/.
+       Una imagen que usa un slide o un par no se puede eliminar: la
+       pantalla quedaria con un hueco. El uso se vuelve a leer de la
+       base justo antes de borrar.
+       ========================================================== */
+    var media = { store: null, items: [], loading: null, stale: true, usage: {}, unknown: [], filter: 'all' };
+    var mediaPickerSlot = null;
+    var mediaDetailItem = null;
+
+    var MEDIA_KIND_LABELS = { slide: 'Cartelera', 'led-a': 'LED A', 'led-b': 'LED B' };
+
+    function resetMedia() {
+      media.store = null;
+      media.items = [];
+      media.loading = null;
+      media.stale = true;
+      media.usage = {};
+      media.unknown = [];
+      clearMediaSelection();
+    }
+
+    function markMediaStale() {
+      media.stale = true;
+    }
+
+    function setupMediaLibrary() {
+      document.querySelectorAll('#media-filters [data-filter]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          media.filter = this.dataset.filter;
+          document.querySelectorAll('#media-filters [data-filter]').forEach(function(b) {
+            b.setAttribute('aria-pressed', b.dataset.filter === media.filter ? 'true' : 'false');
+          });
+          renderMediaGrid();
+        });
+      });
+
+      document.getElementById('btn-media-refresh').addEventListener('click', function() { loadMedia(); });
+      setupMediaSelection();
+
+      document.getElementById('media-detail-copy').addEventListener('click', function() {
+        if (!mediaDetailItem) return;
+        var url = mediaDetailItem.url;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url)
+            .then(function() { showToast('Enlace copiado'); })
+            .catch(function() { prompt('Copia el enlace:', url); });
+        } else {
+          prompt('Copia el enlace:', url);
+        }
+      });
+
+      document.getElementById('media-detail-delete').addEventListener('click', function() {
+        if (mediaDetailItem) requestDeleteMedia(mediaDetailItem);
+      });
+
+      document.getElementById('media-picker-upload').addEventListener('click', function() {
+        var slot = mediaPickerSlot;
+        closeModal('media-picker-modal');
+        if (slot) document.getElementById('led-file-' + slot).click();
+      });
+    }
+
+    function openMediaView() {
+      if (!currentStore) return;
+      if (media.stale || media.store !== currentStore) {
+        loadMedia();
+      } else {
+        // Los archivos no cambiaron, pero su uso si pudo cambiar
+        loadMediaUsage().then(renderMediaGrid);
+      }
+    }
+
+    // Ejecuta fn sobre la lista con a lo sumo `limit` pedidos en paralelo
+    function mapLimit(list, limit, fn) {
+      var results = new Array(list.length);
+      var next = 0;
+      function worker() {
+        if (next >= list.length) return Promise.resolve();
+        var idx = next++;
+        return Promise.resolve(fn(list[idx])).then(function(r) {
+          results[idx] = r;
+          return worker();
+        });
+      }
+      var workers = [];
+      for (var k = 0; k < Math.min(limit, list.length); k++) workers.push(worker());
+      return Promise.all(workers).then(function() { return results; });
+    }
+
+    function mediaKind(name) {
+      if (/^led_.*_a\.png$/i.test(name)) return 'led-a';
+      if (/^led_.*_b\.png$/i.test(name)) return 'led-b';
+      return 'slide';
+    }
+
+    function storeDisplayName(id) {
+      var s = storeCtx && storeCtx.allStores && storeCtx.allStores[id];
+      return (s && s.name) || id;
+    }
+
+    // La biblioteca es comun: se listan las carpetas de todos los locales
+    // (cada imagen recuerda en cual se subio) y la anterior a los locales.
+    function loadMedia() {
+      if (!currentStore) return Promise.resolve();
+      var store = currentStore;
+      if (media.loading && media.store === store) return media.loading;
+
+      media.store = store;
+      media.stale = false;
+      renderMediaSkeleton();
+
+      var folders = Object.keys((storeCtx && storeCtx.allStores) || {}).map(function(id) {
+        return { path: StoreSession.path(id, 'slides'), storeId: id, legacy: false };
+      });
+      folders.push({ path: 'slides', storeId: null, legacy: true });
+
+      var failed = false;
+      media.loading = Promise.all([
+        Promise.all(folders.map(function(f) {
+          return storage.ref(f.path).listAll()
+            .then(function(res) { return res.items.map(function(ref) { return { ref: ref, folder: f }; }); })
+            .catch(function(err) { failed = err; return []; });
+        })),
+        loadMediaUsage()
+      ]).then(function(res) {
+        var refs = [].concat.apply([], res[0]);
+        return mapLimit(refs, 8, function(entry) {
+          return Promise.all([entry.ref.getMetadata(), entry.ref.getDownloadURL()])
+            .then(function(r) {
+              var meta = r[0];
+              return {
+                ref: entry.ref,
+                fullPath: entry.ref.fullPath,
+                name: entry.ref.name,
+                url: r[1],
+                size: meta.size || 0,
+                created: Date.parse(meta.timeCreated) || 0,
+                type: meta.contentType || '',
+                legacy: entry.folder.legacy,
+                storeId: entry.folder.storeId,
+                kind: mediaKind(entry.ref.name),
+                w: 0,
+                h: 0
+              };
+            })
+            .catch(function() { return null; });
+        });
+      }).then(function(items) {
+        if (media.store !== store) return;
+        media.loading = null;
+        media.items = items.filter(Boolean).sort(function(a, b) { return b.created - a.created; });
+        if (failed) showToast('No se pudo leer parte de la biblioteca: ' + failed.message, 'error');
+        renderAllMedia();
+      }).catch(function(err) {
+        media.loading = null;
+        media.stale = true;
+        showToast('No se pudo cargar la biblioteca: ' + err.message, 'error');
+        renderAllMedia();
+      });
+      return media.loading;
+    }
+
+    // Ruta en Storage a partir de una URL de descarga (.../o/<ruta>?alt=media&token=...)
+    function storagePathFromUrl(url) {
+      if (!url || typeof url !== 'string' || url.indexOf('firebasestorage') < 0) return null;
+      var m = /\/o\/([^?#]+)/.exec(url);
+      try { return m ? decodeURIComponent(m[1]) : null; } catch (e) { return null; }
+    }
+
+    function toList(v) {
+      if (!v) return [];
+      return Array.isArray(v) ? v : Object.values(v);
+    }
+
+    /* ---------- Uso de cada imagen en todos los locales ----------
+       Un encargado no puede leer las pantallas de otro local (reglas), asi
+       que cada local publica en mediaUsage/{local} las rutas que usa cada
+       vez que se guardan sus slides o pares. Para el local propio (y para
+       todos, si es superadmin) el uso se calcula en el momento desde las
+       pantallas. Un local sin indice publicado queda "sin verificar" y
+       bloquea los borrados hasta que alguien lo abra en el admin. */
+
+    // Las claves de la base no admiten "/" ni "."
+    function usageKey(path) {
+      return encodeURIComponent(path).replace(/\./g, '%2E');
+    }
+
+    // { ruta: ['default · Slide 2 "Oferta"', ...] } a partir de las pantallas de un local
+    function usageFromScreens(screens, suffix) {
+      var usage = {};
+      function add(url, where) {
+        var p = storagePathFromUrl(url);
+        if (!p) return;
+        (usage[p] = usage[p] || []).push(where);
+      }
+      Object.keys(screens || {}).forEach(function(screenId) {
+        var sc = screens[screenId] || {};
+        var where = screenId + (suffix || '');
+        toList(sc.content && sc.content.slides).forEach(function(s, idx) {
+          if (!s) return;
+          var label = where + ' · Slide ' + (idx + 1) + (s.title ? ' "' + s.title + '"' : '');
+          add(s.imageUrl, label);
+          add(s.imageUrlFallback, label);
+        });
+        toList(sc.led && sc.led.pairs).forEach(function(p, idx) {
+          if (!p) return;
+          var n = String(idx + 1).padStart(2, '0');
+          add(p.imageA, where + ' · Par LED ' + n + ' (A)');
+          add(p.imageB, where + ' · Par LED ' + n + ' (B)');
+        });
+      });
+      return usage;
+    }
+
+    function publishStoreUsage(storeId, usage) {
+      var paths = {};
+      Object.keys(usage).forEach(function(p) { paths[usageKey(p)] = usage[p]; });
+      return db.ref('mediaUsage/' + storeId).set({ paths: paths, updatedAt: firebase.database.ServerValue.TIMESTAMP })
+        .catch(function() { /* reglas sin publicar: los demas locales lo veran "sin verificar" */ });
+    }
+
+    // Recalcula y publica el indice del local activo despues de guardar.
+    // Varios guardados seguidos (reordenar con flechas) son una sola escritura.
+    function publishUsageFor(storeId) {
+      return db.ref(StoreSession.path(storeId, 'screens')).once('value')
+        .then(function(snap) { return publishStoreUsage(storeId, usageFromScreens(snap.val())); })
+        .catch(function() { /* sin conexion: se publica en el proximo guardado */ });
+    }
+
+    var usagePublishTimer = null;
+    function scheduleUsagePublish() {
+      var storeId = currentStore;
+      if (!storeId) return;
+      clearTimeout(usagePublishTimer);
+      usagePublishTimer = setTimeout(function() { publishUsageFor(storeId); }, 1200);
+    }
+
+    // Deja en media { usage, unknown } y lo devuelve. unknown: locales sin verificar
+    function loadMediaUsage() {
+      var ids = Object.keys((storeCtx && storeCtx.allStores) || {});
+      var isSuper = !!(storeCtx && storeCtx.isSuper);
+
+      var perStore = ids.map(function(id) {
+        // Pantallas reales: las del local propio siempre, las de todos si es superadmin
+        if (id === currentStore || isSuper) {
+          return db.ref(StoreSession.path(id, 'screens')).once('value')
+            .then(function(snap) {
+              var u = usageFromScreens(snap.val());
+              publishStoreUsage(id, u);
+              return { id: id, usage: u };
+            })
+            .catch(function() { return { id: id, usage: null }; });
+        }
+        // Del resto de los locales, el indice que publicaron
+        return db.ref('mediaUsage/' + id).once('value')
+          .then(function(snap) {
+            var v = snap.val();
+            if (!v) return { id: id, usage: null };
+            var u = {};
+            Object.keys(v.paths || {}).forEach(function(k) {
+              try { u[decodeURIComponent(k)] = toList(v.paths[k]); } catch (e) { /* clave invalida */ }
+            });
+            return { id: id, usage: u };
+          })
+          .catch(function() { return { id: id, usage: null }; });
+      });
+
+      // Los TV con la version anterior todavia leen screens/ en la raiz
+      var legacy = db.ref('screens').once('value')
+        .then(function(snap) { return usageFromScreens(snap.val(), ' (version anterior)'); })
+        .catch(function() { return {}; });
+
+      return Promise.all([Promise.all(perStore), legacy]).then(function(res) {
+        var usage = {};
+        var unknown = [];
+        function merge(u, prefix) {
+          Object.keys(u).forEach(function(p) {
+            var list = usage[p] = usage[p] || [];
+            u[p].forEach(function(where) { list.push(prefix + where); });
+          });
+        }
+        res[0].forEach(function(r) {
+          if (r.usage) merge(r.usage, storeDisplayName(r.id) + ' · ');
+          else unknown.push(r.id);
+        });
+        merge(res[1], storeDisplayName(LEGACY_TARGET_STORE) + ' · ');
+
+        media.usage = usage;
+        media.unknown = unknown;
+        return { usage: usage, unknown: unknown };
+      });
+    }
+
+    // Uso guardado + lo que esta cargado en los formularios sin guardar todavia
+    function getMediaUsage(item, usage) {
+      var list = ((usage || media.usage)[item.fullPath] || []).slice();
+      var inForm = [
+        { id: 'led-url-a', label: 'Formulario LED (A, sin guardar)' },
+        { id: 'led-url-b', label: 'Formulario LED (B, sin guardar)' },
+        { id: 'slide-image-url', label: 'Formulario de slide (sin guardar)' }
+      ];
+      inForm.forEach(function(f) {
+        if (storagePathFromUrl(document.getElementById(f.id).value) === item.fullPath) list.push(f.label);
+      });
+      return list;
+    }
+
+    function formatBytes(n) {
+      if (!n) return '0 KB';
+      if (n < 1024 * 1024) return Math.max(1, Math.round(n / 1024)) + ' KB';
+      return (n / (1024 * 1024)).toFixed(1).replace('.', ',') + ' MB';
+    }
+
+    function formatMediaDate(ts) {
+      if (!ts) return '';
+      return new Date(ts).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function mediaMetaText(item) {
+      return (item.w ? item.w + '×' + item.h + ' · ' : '') + formatBytes(item.size);
+    }
+
+    function renderMediaSkeleton() {
+      var html = '';
+      for (var i = 0; i < 8; i++) html += '<div class="media-skeleton"></div>';
+      document.getElementById('media-grid').innerHTML = html;
+      document.getElementById('media-picker-grid').innerHTML = html;
+      document.getElementById('media-summary').textContent = 'Cargando…';
+      document.getElementById('media-picker-summary').textContent = 'Cargando…';
+    }
+
+    function renderAllMedia() {
+      renderMediaGrid();
+      if (document.getElementById('media-picker-modal').classList.contains('visible')) renderPickerGrid();
+    }
+
+    function mediaEmptyHtml(title, text) {
+      return '<div class="media-grid-state"><div class="empty-state">' +
+        '<div class="empty-icon"><svg class="ico"><use href="#i-image"/></svg></div>' +
+        '<div class="title">' + escapeHtml(title) + '</div>' +
+        '<div class="text">' + escapeHtml(text) + '</div></div></div>';
+    }
+
+    // Tarjeta de una imagen. mode 'manage' (ver / eliminar) o 'pick' (elegir para un slot LED)
+    function buildMediaTile(item, mode, onLoaded) {
+      var used = getMediaUsage(item);
+      var tile = document.createElement('div');
+      tile.className = 'media-tile';
+
+      var tags = '<span class="media-tag">' + MEDIA_KIND_LABELS[item.kind] + '</span>' +
+        (used.length ? '<span class="media-tag used">En uso</span>' : '') +
+        (item.legacy
+          ? '<span class="media-tag legacy">Anterior</span>'
+          : '<span class="media-tag origin' + (item.storeId === currentStore ? ' mine' : '') + '" title="Subida en ' +
+              escapeHtml(storeDisplayName(item.storeId)) + '">' + escapeHtml(storeDisplayName(item.storeId)) + '</span>');
+
+      tile.innerHTML =
+        '<button type="button" class="media-thumb' + (item.kind !== 'slide' ? ' is-led' : '') + '" aria-label="' +
+          (mode === 'pick' ? 'Elegir ' : 'Ver ') + escapeHtml(item.name) + '">' +
+          '<img alt="" loading="lazy" decoding="async"></button>' +
+        '<div class="media-info"><div class="media-tags">' + tags + '</div>' +
+          '<div class="media-meta">' + escapeHtml(mediaMetaText(item)) + '</div>' +
+          '<div class="media-meta">' + escapeHtml(formatMediaDate(item.created)) + '</div></div>' +
+        (mode === 'manage'
+          ? '<button type="button" class="media-check" aria-pressed="false" title="Seleccionar" aria-label="Seleccionar ' + escapeHtml(item.name) + '">' + icon('check') + '</button>' +
+            '<button type="button" class="icon-btn danger media-del" title="Eliminar" aria-label="Eliminar imagen">' + icon('trash') + '</button>'
+          : '');
+
+      var img = tile.querySelector('img');
+      img.draggable = false;
+      img.onload = function() {
+        item.w = img.naturalWidth;
+        item.h = img.naturalHeight;
+        img.classList.add('loaded');
+        tile.querySelector('.media-meta').textContent = mediaMetaText(item);
+        if (onLoaded) onLoaded(tile, item);
+      };
+      img.onerror = function() {
+        tile.querySelector('.media-tags').insertAdjacentHTML('beforeend', '<span class="media-tag bad">No disponible</span>');
+        if (onLoaded) onLoaded(tile, item);
+      };
+      img.src = item.url;
+
+      if (mode === 'pick') {
+        tile.querySelector('.media-thumb').addEventListener('click', function() { pickMediaForSlot(item, tile); });
+        return tile;
+      }
+
+      // Toda la tarjeta responde: abre el detalle o, con seleccion, alterna
+      tile.addEventListener('click', function(e) {
+        if (e.target.closest('.media-check, .media-del')) return;
+        onMediaTileClick(item, e);
+      });
+      tile.querySelector('.media-check').addEventListener('click', function(e) {
+        if (e.shiftKey) selectMediaRange(item);
+        else toggleMediaSelected(item);
+      });
+      tile.querySelector('.media-del').addEventListener('click', function() { requestDeleteMedia(item); });
+      return tile;
+    }
+
+    function renderMediaGrid() {
+      var grid = document.getElementById('media-grid');
+      var summary = document.getElementById('media-summary');
+      if (media.loading) return;
+
+      var all = media.items;
+      var items = all.filter(function(item) {
+        if (media.filter === 'slide') return item.kind === 'slide';
+        if (media.filter === 'led') return item.kind !== 'slide';
+        if (media.filter === 'unused') return !getMediaUsage(item).length;
+        if (media.filter === 'mine') return item.storeId === currentStore;
+        return true;
+      });
+
+      var bytes = items.reduce(function(t, i) { return t + i.size; }, 0);
+      summary.textContent = items.length + (items.length === 1 ? ' imagen' : ' imagenes') + ' · ' + formatBytes(bytes) +
+        (items.length !== all.length ? ' (de ' + all.length + ')' : '');
+
+      // La seleccion solo conserva lo que sigue visible
+      var visible = {};
+      items.forEach(function(i) { visible[i.fullPath] = true; });
+      Object.keys(mediaSel.paths).forEach(function(p) { if (!visible[p]) delete mediaSel.paths[p]; });
+
+      grid.innerHTML = '';
+      mediaSel.tiles = [];
+      mediaSel.visible = items;
+      if (!all.length) {
+        grid.innerHTML = mediaEmptyHtml('Todavia no hay imagenes', 'Las que subas desde la cartelera o las pantallas LED apareceran aca.');
+      } else if (!items.length) {
+        grid.innerHTML = mediaEmptyHtml('Nada con este filtro', media.filter === 'unused' ? 'Todas las imagenes estan en uso.' : 'Prueba con otro filtro.');
+      } else {
+        items.forEach(function(item) {
+          var tile = buildMediaTile(item, 'manage');
+          mediaSel.tiles.push({ el: tile, item: item });
+          grid.appendChild(tile);
+        });
+      }
+      paintMediaSelection();
+    }
+
+    /* ---------- Seleccion multiple y borrado en lote ----------
+       - Arrastrar sobre el area dibuja un recuadro: selecciona lo que toca.
+         Con Ctrl/Cmd o Shift suma a la seleccion actual.
+       - Ctrl/Cmd+clic alterna una tarjeta; Shift+clic selecciona un rango.
+       - Con algo seleccionado, un clic simple alterna en vez de abrir.
+       - Ctrl+A todas, Supr elimina, Esc quita la seleccion.
+       Las imagenes en uso se pueden seleccionar, pero el borrado las omite. */
+    var mediaSel = { paths: {}, tiles: [], visible: [], anchor: null, suppressClick: false };
+
+    function mediaSelectedItems() {
+      return media.items.filter(function(i) { return mediaSel.paths[i.fullPath]; });
+    }
+
+    function setMediaSelection(paths) {
+      mediaSel.paths = paths;
+      paintMediaSelection();
+    }
+
+    function toggleMediaSelected(item) {
+      if (mediaSel.paths[item.fullPath]) delete mediaSel.paths[item.fullPath];
+      else mediaSel.paths[item.fullPath] = true;
+      mediaSel.anchor = item.fullPath;
+      paintMediaSelection();
+    }
+
+    function clearMediaSelection() {
+      mediaSel.anchor = null;
+      setMediaSelection({});
+    }
+
+    // Shift+clic: del ultimo tocado hasta este, en el orden visible
+    function selectMediaRange(item) {
+      var list = mediaSel.visible;
+      var from = -1, to = -1;
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].fullPath === mediaSel.anchor) from = i;
+        if (list[i] === item) to = i;
+      }
+      if (from < 0) { toggleMediaSelected(item); return; }
+      var lo = Math.min(from, to), hi = Math.max(from, to);
+      for (var k = lo; k <= hi; k++) mediaSel.paths[list[k].fullPath] = true;
+      paintMediaSelection();
+    }
+
+    function onMediaTileClick(item, e) {
+      if (e.shiftKey) { selectMediaRange(item); return; }
+      if (e.ctrlKey || e.metaKey || Object.keys(mediaSel.paths).length) { toggleMediaSelected(item); return; }
+      openMediaDetail(item);
+    }
+
+    // Solo clases y la barra: no se reconstruye la grilla mientras se arrastra
+    function paintMediaSelection() {
+      var n = 0;
+      mediaSel.tiles.forEach(function(t) {
+        var on = !!mediaSel.paths[t.item.fullPath];
+        if (on) n++;
+        t.el.classList.toggle('is-selected', on);
+        var check = t.el.querySelector('.media-check');
+        if (check) check.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+
+      document.getElementById('media-grid').classList.toggle('has-selection', n > 0);
+      var bar = document.getElementById('media-selection-bar');
+      bar.classList.toggle('visible', n > 0);
+      document.body.classList.toggle('has-media-selection', n > 0);
+      if (!n) return;
+
+      var items = mediaSelectedItems();
+      var inUse = items.filter(function(i) { return getMediaUsage(i).length; }).length;
+      var bytes = items.reduce(function(t, i) { return t + i.size; }, 0);
+      document.getElementById('media-sel-count').textContent = n + (n === 1 ? ' seleccionada' : ' seleccionadas');
+      document.getElementById('media-sel-detail').textContent = formatBytes(bytes) + (inUse ? ' · ' + inUse + ' en uso' : '');
+      document.getElementById('media-sel-all').disabled = n === mediaSel.visible.length;
+    }
+
+    function selectAllVisibleMedia() {
+      var paths = {};
+      mediaSel.visible.forEach(function(i) { paths[i.fullPath] = true; });
+      setMediaSelection(paths);
+    }
+
+    function setupMediaMarquee() {
+      var area = document.getElementById('media-area');
+      var box = null;
+      var start = null;      // coordenadas de pagina: el recuadro sigue al scroll
+      var base = null;       // seleccion previa cuando se suma con Ctrl/Shift
+      var dragging = false;
+      var startedOnTile = false;
+      var last = null;
+      var raf = null;
+
+      function pagePoint(e) {
+        return { x: e.clientX + window.scrollX, y: e.clientY + window.scrollY };
+      }
+
+      function update() {
+        if (!dragging || !last) return;
+        var cur = { x: last.clientX + window.scrollX, y: last.clientY + window.scrollY };
+        var left = Math.min(start.x, cur.x), top = Math.min(start.y, cur.y);
+        var right = Math.max(start.x, cur.x), bottom = Math.max(start.y, cur.y);
+
+        box.style.left = (left - window.scrollX) + 'px';
+        box.style.top = (top - window.scrollY) + 'px';
+        box.style.width = (right - left) + 'px';
+        box.style.height = (bottom - top) + 'px';
+
+        var paths = {};
+        Object.keys(base).forEach(function(p) { paths[p] = true; });
+        mediaSel.tiles.forEach(function(t) {
+          var r = t.el.getBoundingClientRect();
+          var tl = r.left + window.scrollX, tt = r.top + window.scrollY;
+          if (tl < right && tl + r.width > left && tt < bottom && tt + r.height > top) paths[t.item.fullPath] = true;
+        });
+        mediaSel.paths = paths;
+        paintMediaSelection();
+      }
+
+      // Cerca del borde de la ventana, la pagina se desplaza sola
+      function autoScroll() {
+        if (!dragging) return;
+        var edge = 70, speed = 0;
+        if (last.clientY < edge) speed = -Math.ceil((edge - last.clientY) / 4);
+        else if (last.clientY > window.innerHeight - edge) speed = Math.ceil((last.clientY - (window.innerHeight - edge)) / 4);
+        if (speed) {
+          window.scrollBy(0, speed);
+          update();
+        }
+        raf = requestAnimationFrame(autoScroll);
+      }
+
+      function onMove(e) {
+        last = e;
+        if (!dragging) {
+          var p = pagePoint(e);
+          if (Math.abs(p.x - start.x) < 6 && Math.abs(p.y - start.y) < 6) return;
+          dragging = true;
+          box = document.createElement('div');
+          box.className = 'media-marquee';
+          document.body.appendChild(box);
+          area.classList.add('is-dragging');
+          raf = requestAnimationFrame(autoScroll);
+        }
+        update();
+      }
+
+      function onUp(e) {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        if (raf) cancelAnimationFrame(raf);
+        raf = null;
+        if (dragging) {
+          dragging = false;
+          if (box) box.remove();
+          box = null;
+          area.classList.remove('is-dragging');
+          // El clic que sigue al soltar no debe abrir ni alternar la tarjeta
+          mediaSel.suppressClick = true;
+          setTimeout(function() { mediaSel.suppressClick = false; }, 0);
+        } else if (!startedOnTile && !(e.ctrlKey || e.metaKey || e.shiftKey)) {
+          // Clic en un espacio vacio: quita la seleccion
+          clearMediaSelection();
+        }
+      }
+
+      area.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return;
+        if (e.target.closest('.media-check, .media-del, a, input, select, textarea')) return;
+        if (!mediaSel.tiles.length) return;
+        start = pagePoint(e);
+        last = e;
+        startedOnTile = !!e.target.closest('.media-tile');
+        base = (e.ctrlKey || e.metaKey || e.shiftKey) ? Object.assign({}, mediaSel.paths) : {};
+        dragging = false;
+        // Sin esto el navegador arrastra la imagen o selecciona texto
+        e.preventDefault();
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+
+      area.addEventListener('click', function(e) {
+        if (mediaSel.suppressClick) {
+          e.stopPropagation();
+          e.preventDefault();
+          mediaSel.suppressClick = false;
+        }
+      }, true);
+    }
+
+    function setupMediaSelection() {
+      setupMediaMarquee();
+      document.getElementById('media-sel-all').addEventListener('click', selectAllVisibleMedia);
+      document.getElementById('media-sel-clear').addEventListener('click', clearMediaSelection);
+      document.getElementById('media-sel-delete').addEventListener('click', deleteSelectedMedia);
+
+      document.addEventListener('keydown', function(e) {
+        if (currentView !== 'media' || document.querySelector('.modal-overlay.visible')) return;
+        if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+        var n = Object.keys(mediaSel.paths).length;
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && mediaSel.visible.length) {
+          e.preventDefault();
+          selectAllVisibleMedia();
+        } else if (e.key === 'Escape' && n) {
+          clearMediaSelection();
+        } else if ((e.key === 'Delete' || e.key === 'Backspace') && n) {
+          e.preventDefault();
+          deleteSelectedMedia();
+        }
+      }, true); // captura: corre antes del Esc que cierra modales y ve si habia uno abierto
+    }
+
+    function deleteSelectedMedia() {
+      var items = mediaSelectedItems();
+      if (!items.length) return;
+      var btn = document.getElementById('media-sel-delete');
+      if (btn.disabled) return;
+
+      // El uso se relee de la base antes de borrar, igual que de a una
+      loadMediaUsage().then(function(res) {
+        if (res.unknown.length) {
+          showToast(deleteBlockReason([], res.unknown), 'error');
+          return;
+        }
+        var blocked = items.filter(function(i) { return getMediaUsage(i, res.usage).length; });
+        var ok = items.filter(function(i) { return blocked.indexOf(i) < 0; });
+        if (!ok.length) {
+          showToast(blocked.length === 1 ? 'La imagen seleccionada esta en uso' : 'Las ' + blocked.length + ' imagenes seleccionadas estan en uso', 'error');
+          paintMediaSelection();
+          return;
+        }
+
+        var bytes = ok.reduce(function(t, i) { return t + i.size; }, 0);
+        var msg = 'Eliminar ' + ok.length + (ok.length === 1 ? ' imagen' : ' imagenes') + ' de Firebase (' + formatBytes(bytes) + ')?' +
+          (blocked.length ? '\n\n' + blocked.length + (blocked.length === 1 ? ' esta en uso y no se toca.' : ' estan en uso y no se tocan.') : '') +
+          '\n\nNo se puede deshacer.';
+        if (!confirm(msg)) return;
+
+        var done = 0;
+        btn.disabled = true;
+        var label = btn.querySelector('.label');
+        label.textContent = 'Eliminando 0/' + ok.length;
+
+        mapLimit(ok, 4, function(item) {
+          return item.ref.delete()
+            .then(function() { return { item: item, ok: true }; })
+            .catch(function(err) { return { item: item, ok: false, err: err }; })
+            .then(function(r) {
+              label.textContent = 'Eliminando ' + (++done) + '/' + ok.length;
+              return r;
+            });
+        }).then(function(results) {
+          var deleted = results.filter(function(r) { return r.ok; }).map(function(r) { return r.item; });
+          var failed = results.filter(function(r) { return !r.ok; });
+          media.items = media.items.filter(function(i) { return deleted.indexOf(i) < 0; });
+
+          // Quedan seleccionadas las que no se pudieron borrar, para verlas
+          var keep = {};
+          blocked.concat(failed.map(function(r) { return r.item; })).forEach(function(i) { keep[i.fullPath] = true; });
+          mediaSel.paths = keep;
+          renderMediaGrid();
+
+          var parts = [deleted.length + (deleted.length === 1 ? ' imagen eliminada' : ' imagenes eliminadas')];
+          if (blocked.length) parts.push(blocked.length + ' en uso sin tocar');
+          if (failed.length) parts.push(failed.length + ' con error');
+          showToast(parts.join(' · '), failed.length ? 'error' : undefined);
+        }).finally(function() {
+          btn.disabled = false;
+          label.textContent = 'Eliminar';
+        });
+      }).catch(function(err) {
+        showToast('No se pudo verificar el uso: ' + err.message, 'error');
+      });
+    }
+
+    /* ---------- Selector para las zonas A y B del LED ----------
+       Solo se puede elegir una imagen de la medida exacta de la zona:
+       ajustar otra exigiria leer sus pixeles desde Storage (CORS). Para
+       otra medida se sube de nuevo y fitImageToExactSize la ajusta. */
+    function openMediaPicker(slot) {
+      if (!currentStore) return;
+      mediaPickerSlot = slot;
+      var size = LED_SLOTS[slot];
+      document.getElementById('media-picker-title').textContent = 'Elegir imagen ' + slot.toUpperCase();
+      document.getElementById('media-picker-sub').textContent =
+        'Se pueden usar las de ' + size.w + '×' + size.h + ' px exactos. Para otra medida, sube una nueva y se ajusta sola.';
+      openModal('media-picker-modal');
+      if (media.stale || media.store !== currentStore) loadMedia();
+      else renderPickerGrid();
+    }
+
+    function mediaFitsSlot(item, slot) {
+      var size = LED_SLOTS[slot];
+      return item.w === size.w && item.h === size.h;
+    }
+
+    function renderPickerGrid() {
+      var slot = mediaPickerSlot;
+      if (!slot || media.loading) return;
+      var grid = document.getElementById('media-picker-grid');
+      var summary = document.getElementById('media-picker-summary');
+      var size = LED_SLOTS[slot];
+      var current = document.getElementById('led-url-' + slot).value;
+
+      // Primero las subidas para esta misma zona
+      var items = media.items.slice().sort(function(a, b) {
+        var pa = a.kind === 'led-' + slot ? 0 : 1;
+        var pb = b.kind === 'led-' + slot ? 0 : 1;
+        return (pa - pb) || (b.created - a.created);
+      });
+
+      function updateSummary() {
+        var fit = items.filter(function(i) { return mediaFitsSlot(i, slot); }).length;
+        summary.textContent = fit + (fit === 1 ? ' compatible' : ' compatibles') + ' con ' + size.w + '×' + size.h + ' · ' + items.length + ' en total';
+      }
+
+      grid.innerHTML = '';
+      if (!items.length) {
+        summary.textContent = '';
+        grid.innerHTML = mediaEmptyHtml('La biblioteca esta vacia', 'Sube una imagen nueva para esta zona.');
+        return;
+      }
+
+      items.forEach(function(item) {
+        var tile = buildMediaTile(item, 'pick', function(t, it) {
+          var ok = mediaFitsSlot(it, slot);
+          t.classList.toggle('is-disabled', !ok);
+          if (!ok && it.w) t.querySelector('.media-thumb').title = 'Mide ' + it.w + '×' + it.h + ': no coincide con la zona ' + slot.toUpperCase();
+          updateSummary();
+        });
+        // Hasta conocer la medida no se puede elegir
+        if (!item.w || !mediaFitsSlot(item, slot)) tile.classList.add('is-disabled');
+        if (current && storagePathFromUrl(current) === item.fullPath) {
+          tile.querySelector('.media-tags').insertAdjacentHTML('afterbegin', '<span class="media-tag used">Actual</span>');
+        }
+        grid.appendChild(tile);
+      });
+      updateSummary();
+    }
+
+    function pickMediaForSlot(item, tile) {
+      var slot = mediaPickerSlot;
+      if (!slot) return;
+      if (!mediaFitsSlot(item, slot)) {
+        var size = LED_SLOTS[slot];
+        showToast(item.w
+          ? 'Mide ' + item.w + '×' + item.h + ': la zona ' + slot.toUpperCase() + ' necesita ' + size.w + '×' + size.h
+          : 'Esperando que cargue la imagen…', 'error');
+        return;
+      }
+      setLedSlotImage(slot, item.url);
+      closeModal('media-picker-modal');
+      showToast('Imagen ' + slot.toUpperCase() + ' cargada desde la biblioteca');
+    }
+
+    /* ---------- Detalle y eliminacion ---------- */
+    function openMediaDetail(item) {
+      mediaDetailItem = item;
+      var used = getMediaUsage(item);
+      var img = document.getElementById('media-detail-img');
+      img.classList.remove('loaded');
+      img.onload = function() {
+        img.classList.add('loaded');
+        item.w = img.naturalWidth;
+        item.h = img.naturalHeight;
+        renderMediaProps(item, getMediaUsage(item));
+      };
+      img.src = item.url;
+      document.getElementById('media-detail-thumb').classList.toggle('is-led', item.kind !== 'slide');
+      document.getElementById('media-modal-title').textContent = 'Imagen · ' + MEDIA_KIND_LABELS[item.kind];
+      document.getElementById('media-modal-sub').textContent = item.name;
+      document.getElementById('media-detail-open').href = item.url;
+      renderMediaProps(item, used);
+      openModal('media-modal');
+    }
+
+    function renderMediaProps(item, used) {
+      var rows = [
+        ['Medida', item.w ? item.w + ' × ' + item.h + ' px' : '…'],
+        ['Peso', formatBytes(item.size)],
+        ['Formato', (item.type || '').replace('image/', '').toUpperCase() || '-'],
+        ['Subida', (item.created ? new Date(item.created).toLocaleString('es-ES') : '-') +
+          (item.legacy ? ' · antes de los puntos de venta' : ' · en ' + storeDisplayName(item.storeId))]
+      ];
+      var html = rows.map(function(r) { return '<div><dt>' + r[0] + '</dt><dd>' + escapeHtml(r[1]) + '</dd></div>'; }).join('');
+      html += '<div><dt>Ruta</dt><dd class="mono">' + escapeHtml(item.fullPath) + '</dd></div>';
+      html += '<div><dt>Uso</dt><dd>' + (used.length
+        ? '<ul>' + used.map(function(u) { return '<li>' + escapeHtml(u) + '</li>'; }).join('') + '</ul>'
+        : 'Sin uso') + '</dd></div>';
+      document.getElementById('media-detail-props').innerHTML = html;
+
+      var del = document.getElementById('media-detail-delete');
+      var blocked = document.getElementById('media-detail-blocked');
+      var reason = deleteBlockReason(used, media.unknown);
+      del.disabled = !!reason;
+      blocked.hidden = !reason;
+      blocked.textContent = reason;
+    }
+
+    // Por que no se puede borrar ('' si se puede). La biblioteca es comun:
+    // si algun local no publico su uso, no hay forma de saber si la usa.
+    function deleteBlockReason(used, unknown) {
+      if (used.length) return 'Para eliminarla, primero quitala de los slides o pares donde se usa.';
+      if (unknown && unknown.length) {
+        return 'No se puede confirmar si ' + unknown.map(storeDisplayName).join(', ') +
+          ' la usa: se habilita cuando alguien abra ese punto de venta en el admin.';
+      }
+      return '';
+    }
+
+    function requestDeleteMedia(item) {
+      // El uso se relee de la base: otro local pudo haberla asignado recien
+      loadMediaUsage().then(function(res) {
+        var used = getMediaUsage(item, res.usage);
+        var reason = deleteBlockReason(used, res.unknown);
+        if (reason) {
+          showToast(used.length
+            ? 'No se puede eliminar: se usa en ' + used[0] + (used.length > 1 ? ' y ' + (used.length - 1) + ' mas' : '')
+            : reason, 'error');
+          if (mediaDetailItem === item) renderMediaProps(item, used);
+          renderMediaGrid();
+          return;
+        }
+        if (!confirm('Eliminar esta imagen de Firebase?\n\n' + item.name + '\n\nNo se puede deshacer.')) return;
+
+        item.ref.delete()
+          .then(function() {
+            media.items = media.items.filter(function(i) { return i !== item; });
+            if (mediaDetailItem === item) {
+              closeModal('media-modal');
+              mediaDetailItem = null;
+            }
+            renderMediaGrid();
+            showToast('Imagen eliminada');
+          })
+          .catch(function(err) { showToast('Error al eliminar: ' + err.message, 'error'); });
+      }).catch(function(err) {
+        showToast('No se pudo verificar el uso: ' + err.message, 'error');
+      });
+    }
+
+    /* ==========================================================
+       PUNTOS DE VENTA Y ACCESOS (solo superadmin)
+       Las reglas de la base (database.rules.json) rechazan estas
+       escrituras para cualquier otro rol: la UI solo las oculta.
+       ========================================================== */
+    var usersData = {};
+
+    function openStoresModal() {
+      if (!storeCtx || !storeCtx.isSuper) return;
+      renderStoreRows();
+      loadUsers();
+      checkLegacyContent();
+      openModal('stores-modal');
+    }
+
+    // Vuelve a leer storeList y redibuja todo lo que nombra locales
+    function refreshStores() {
+      return StoreSession.resolve(db, auth.currentUser).then(function(ctx) {
+        storeCtx = ctx;
+        renderStorePicker();
+        renderStoreRows();
+        renderUserRows();
+        var name = currentStoreName();
+        document.querySelectorAll('.store-name-label').forEach(function(el) { el.textContent = name; });
+      });
+    }
+
+    function renderStoreRows() {
+      var wrap = document.getElementById('store-rows');
+      wrap.innerHTML = '';
+      storeCtx.stores.forEach(function(s) {
+        var row = document.createElement('div');
+        row.className = 'store-row';
+        row.innerHTML =
+          '<div class="form-group"><input type="text" maxlength="60" aria-label="Nombre de ' + escapeHtml(s.name) + '"></div>' +
+          '<span class="id">' + escapeHtml(s.id) + '</span>';
+        var input = row.querySelector('input');
+        input.value = s.name;
+        input.addEventListener('keydown', function(e) { if (e.key === 'Enter') this.blur(); });
+        input.addEventListener('change', function() {
+          var name = this.value.trim();
+          if (!name || name === s.name) { this.value = s.name; return; }
+          db.ref('storeList/' + s.id + '/name').set(name)
+            .then(function() {
+              showToast('Local renombrado a "' + name + '"');
+              return refreshStores();
+            })
+            .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
+        });
+        wrap.appendChild(row);
+      });
+    }
+
+    // IDs pv1, pv2, pv3...: independientes del nombre, asi renombrar un local
+    // no cambia sus rutas ni las de sus imagenes
+    function nextStoreId() {
+      var max = 0;
+      Object.keys(storeCtx.allStores || {}).forEach(function(id) {
+        var m = /^pv(\d+)$/.exec(id);
+        if (m) max = Math.max(max, parseInt(m[1], 10));
+      });
+      return 'pv' + (max + 1);
+    }
+
+    function createStore() {
+      var input = document.getElementById('new-store-name');
+      var name = input.value.trim();
+      if (!name) {
+        showToast('Escribe el nombre del punto de venta', 'error');
+        input.focus();
+        return;
+      }
+      var dup = storeCtx.stores.some(function(s) { return s.name.toLowerCase() === name.toLowerCase(); });
+      if (dup) {
+        showToast('Ya existe un punto de venta con ese nombre', 'error');
+        return;
+      }
+      var id = nextStoreId();
+      db.ref('storeList/' + id).set({ name: name, createdAt: firebase.database.ServerValue.TIMESTAMP })
+        .then(function() {
+          input.value = '';
+          showToast('Punto de venta "' + name + '" creado');
+          return refreshStores();
+        })
+        .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
+    }
+
+    function loadUsers() {
+      document.getElementById('user-rows').innerHTML = '<div class="modal-note">Cargando usuarios…</div>';
+      db.ref('users').once('value')
+        .then(function(snap) {
+          usersData = snap.val() || {};
+          renderUserRows();
+        })
+        .catch(function(err) {
+          document.getElementById('user-rows').innerHTML = '';
+          showToast('No se pudieron leer los usuarios: ' + err.message, 'error');
+        });
+    }
+
+    function renderUserRows() {
+      var wrap = document.getElementById('user-rows');
+      if (!storeCtx) return;
+      var me = auth.currentUser ? auth.currentUser.uid : '';
+      var uids = Object.keys(usersData).sort(function(a, b) {
+        var ea = ((usersData[a].profile || {}).email || a).toLowerCase();
+        var eb = ((usersData[b].profile || {}).email || b).toLowerCase();
+        return ea.localeCompare(eb);
+      });
+
+      wrap.innerHTML = '';
+      if (!uids.length) {
+        wrap.innerHTML = '<div class="modal-note">Todavia no ingreso ningun usuario.</div>';
+        return;
+      }
+
+      uids.forEach(function(uid) {
+        var u = usersData[uid] || {};
+        var profile = u.profile || {};
+        var row = document.createElement('div');
+        row.className = 'user-row';
+
+        var last = profile.lastLogin ? 'Ultimo ingreso ' + new Date(profile.lastLogin).toLocaleString('es-ES') : 'Sin ingresos registrados';
+        var roleOptions = '<option value="">Sin acceso</option>' +
+          Object.keys(StoreSession.ROLE_LABELS).map(function(r) {
+            return '<option value="' + r + '"' + (u.role === r ? ' selected' : '') + '>' + StoreSession.ROLE_LABELS[r] + '</option>';
+          }).join('');
+
+        row.innerHTML =
+          '<div style="min-width:0">' +
+            '<div class="email">' + escapeHtml(profile.email || uid) + (uid === me ? '<span class="you">Tu cuenta</span>' : '') + '</div>' +
+            '<div class="when">' + escapeHtml(last) + '</div>' +
+          '</div>' +
+          '<div class="form-group"><select aria-label="Rol"' + (uid === me ? ' disabled title="No puedes cambiar tu propio rol"' : '') + '>' + roleOptions + '</select></div>' +
+          '<div class="store-chips"></div>';
+
+        row.querySelector('select').addEventListener('change', function() {
+          var role = this.value || null;
+          db.ref('users/' + uid + '/role').set(role)
+            .then(function() {
+              u.role = role || undefined;
+              usersData[uid] = u;
+              renderUserRows();
+              showToast(role ? 'Rol actualizado: ' + StoreSession.ROLE_LABELS[role] : 'Acceso quitado');
+            })
+            .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
+        });
+
+        var chips = row.querySelector('.store-chips');
+        if (u.role === 'superadmin') {
+          chips.innerHTML = '<span class="all-access">Acceso a todos los puntos de venta</span>';
+        } else {
+          var assigned = u.stores || {};
+          storeCtx.stores.forEach(function(s) {
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'store-chip';
+            chip.textContent = s.name;
+            chip.setAttribute('aria-pressed', assigned[s.id] === true ? 'true' : 'false');
+            chip.disabled = !u.role;
+            if (!u.role) chip.title = 'Asigna un rol primero';
+            chip.addEventListener('click', function() {
+              var on = assigned[s.id] !== true;
+              db.ref('users/' + uid + '/stores/' + s.id).set(on ? true : null)
+                .then(function() {
+                  assigned[s.id] = on ? true : undefined;
+                  u.stores = assigned;
+                  chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+                })
+                .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
+            });
+            chips.appendChild(chip);
+          });
+        }
+
+        wrap.appendChild(row);
+      });
+    }
+
+    /* ---------- Migracion del contenido anterior ----------
+       Copia screens/ (estructura sin locales) a stores/pv1. No borra el original: los TV que todavia tengan la
+       version anterior siguen leyendolo hasta que se actualicen. */
+    function checkLegacyContent() {
+      var section = document.getElementById('migration-section');
+      Promise.all([
+        db.ref('screens').once('value'),
+        db.ref(StoreSession.path(LEGACY_TARGET_STORE, 'migratedAt')).once('value')
+      ]).then(function(res) {
+        var legacy = res[0].val();
+        var migratedAt = res[1].val();
+        if (!legacy) { section.hidden = true; return; }
+
+        var n = Object.keys(legacy).length;
+        var target = (storeCtx.allStores[LEGACY_TARGET_STORE] || {}).name || LEGACY_TARGET_STORE;
+        section.hidden = false;
+        document.getElementById('btn-migrate').textContent = 'Migrar a ' + target;
+        document.getElementById('btn-migrate').hidden = !!migratedAt;
+        document.getElementById('btn-purge-legacy').hidden = !migratedAt;
+        document.getElementById('migration-status').textContent = migratedAt
+          ? 'El contenido anterior (' + n + (n === 1 ? ' pantalla' : ' pantallas') + ') ya se copio a ' + target + ' el ' +
+            new Date(migratedAt).toLocaleString('es-ES') + '. Cuando todos los TV y carteles LED usen la version nueva, puedes eliminar la copia antigua.'
+          : 'Hay ' + n + (n === 1 ? ' pantalla' : ' pantallas') + ' en la estructura anterior, sin punto de venta. Migralas para que ' + target + ' las administre.';
+      }).catch(function() { section.hidden = true; });
+    }
+
+    function migrateLegacyContent() {
+      var btn = document.getElementById('btn-migrate');
+      btn.disabled = true;
+      var base = StoreSession.path(LEGACY_TARGET_STORE);
+
+      Promise.all([
+        db.ref('screens').once('value'),
+        db.ref(base + '/screens').once('value')
+      ]).then(function(res) {
+        var legacy = res[0].val() || {};
+        var existing = res[1].val() || {};
+        var updates = {};
+        var skipped = [];
+
+        // Una pantalla que ya existe en el local no se pisa
+        Object.keys(legacy).forEach(function(id) {
+          if (existing[id]) skipped.push(id);
+          else updates[base + '/screens/' + id] = legacy[id];
+        });
+        updates[base + '/migratedAt'] = firebase.database.ServerValue.TIMESTAMP;
+
+        return db.ref().update(updates).then(function() { return skipped; });
+      }).then(function(skipped) {
+        showToast(skipped.length
+          ? 'Migrado. Ya existian y no se tocaron: ' + skipped.join(', ')
+          : 'Contenido migrado correctamente');
+        checkLegacyContent();
+        publishUsageFor(LEGACY_TARGET_STORE);
+        if (currentStore === LEGACY_TARGET_STORE) selectStore(currentStore);
+      }).catch(function(err) {
+        showToast('Error en la migracion: ' + err.message, 'error');
+      }).finally(function() {
+        btn.disabled = false;
+      });
+    }
+
+    function purgeLegacyContent() {
+      if (!confirm('Eliminar la copia antigua de las pantallas?\n\nLos TV o carteles LED que todavia usen la version anterior dejaran de mostrar contenido. Las imagenes no se borran.')) return;
+      db.ref('screens').remove()
+        .then(function() {
+          showToast('Datos antiguos eliminados');
+          checkLegacyContent();
+        })
+        .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
     }
 
     /* ==========================================================

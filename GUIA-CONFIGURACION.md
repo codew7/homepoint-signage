@@ -63,10 +63,6 @@ En Firebase Console → Realtime Database → Reglas, pega:
     "screenStatus": {
       ".read": true,
       ".write": true
-    },
-    "history": {
-      ".read": true,
-      ".write": true
     }
   }
 }
@@ -210,13 +206,8 @@ Presiona **Shift+D** en cualquier pantalla para ver información de estado.
 │   │   ├── currentSlide: 0
 │   │   └── ...
 │   └── ...
-├── shared/
-│   └── content/ (contenido compartido para todas las pantallas)
-└── history/
-    └── -Nxx.../
-        ├── message: "Slide agregado: Oferta TV"
-        ├── screen: "default"
-        └── timestamp: 1234567890
+└── shared/
+    └── content/ (contenido compartido para todas las pantallas)
 ```
 
 ---

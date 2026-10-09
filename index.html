@@ -848,6 +848,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Puntos de venta: el local sale de la cuenta logueada -->
+  <script src="store-session.js"></script>
 
   <script>
     /* ==========================================================
@@ -867,13 +869,18 @@
     /* ==========================================================
        ESTADO DE LA APLICACIÓN
        ========================================================== */
+    const params = new URLSearchParams(window.location.search);
+
     const state = {
+      storeId: null,                // punto de venta, resuelto desde la cuenta
+      storeName: '',
+      storeCtx: null,
       slides: [],
       currentIndex: 0,
       timer: null,
       progressTimer: null,
       progressStart: 0,
-      screenId: new URLSearchParams(window.location.search).get('s') || getSavedScreenId() || 'default',
+      screenId: params.get('s') || getSavedScreenId() || 'default',
       isOnline: true,
       transitionType: 'fade',      // fade | zoom | slide
       transitionSpeed: 1,           // segundos
@@ -884,7 +891,7 @@
     /* ==========================================================
        INICIALIZACIÓN
        ========================================================== */
-    document.getElementById('screen-id-display').textContent = 'Pantalla: ' + state.screenId;
+    updateScreenIdDisplay();
     saveScreenId(state.screenId);
 
     firebase.initializeApp(FIREBASE_CONFIG);
@@ -927,13 +934,80 @@
     auth.onAuthStateChanged(function(user) {
       if (user) {
         document.getElementById('login-screen').classList.add('hidden');
-        listenToFirebase();
         monitorConnection();
-        loadFromCache();
+
+        // Arranque inmediato con el ultimo local de esta cuenta: sin red,
+        // la caché de ese local se muestra igual
+        var recalled = StoreSession.recall(user.uid);
+        if (recalled) startStore(recalled, '');
+
+        StoreSession.resolve(db, user).then(function(ctx) {
+          state.storeCtx = ctx;
+          if (!ctx.stores.length) {
+            StoreSession.forget(user.uid);
+            StoreSession.showGate({
+              eyebrow: 'Cartelera Digital',
+              title: 'Cuenta sin punto de venta',
+              message: 'Esta cuenta todavía no tiene un local asignado. Pide al administrador que la habilite desde "Accesos" en el panel.',
+              email: user.email,
+              uid: user.uid,
+              onLogout: logout
+            });
+            return;
+          }
+          var chosen = StoreSession.pick(ctx, params.get('pv'));
+          if (!chosen) {
+            if (state.storeId) return switchStore(null);
+            StoreSession.showPicker({ eyebrow: 'Cartelera Digital', stores: ctx.stores, onPick: function(id) { switchStore(id); }, onLogout: logout });
+            return;
+          }
+          if (state.storeId && state.storeId !== chosen) return switchStore(chosen);
+          var store = StoreSession.findStore(ctx, chosen);
+          startStore(chosen, store ? store.name : '');
+        }).catch(function(error) {
+          console.error('Error al resolver el punto de venta:', error);
+        });
       } else {
         document.getElementById('login-screen').classList.remove('hidden');
       }
     });
+
+    /* ==========================================================
+       PUNTO DE VENTA
+       Se arranca una sola vez por carga. Cambiar de local recarga la
+       pagina: es la forma segura de no arrastrar slides, config ni
+       listeners del local anterior.
+       ========================================================== */
+    function startStore(storeId, storeName) {
+      if (storeName) state.storeName = storeName;
+      if (state.storeId === storeId) { updateScreenIdDisplay(); return; }
+      state.storeId = storeId;
+      StoreSession.remember(auth.currentUser.uid, storeId);
+      updateScreenIdDisplay();
+      loadFromCache();
+      listenToFirebase();
+    }
+
+    // Cerrar sesion desde los overlays de punto de venta: se vuelve al login
+    function logout() {
+      auth.signOut().then(function() { location.reload(); });
+    }
+
+    // id null: volver a preguntar. Se quita pv= de la URL para que no gane
+    // sobre la eleccion recien hecha.
+    function switchStore(storeId) {
+      var uid = auth.currentUser.uid;
+      if (storeId) StoreSession.remember(uid, storeId);
+      else StoreSession.forget(uid);
+      var url = new URL(window.location.href);
+      url.searchParams.delete('pv');
+      window.location.href = url.toString();
+    }
+
+    function updateScreenIdDisplay() {
+      document.getElementById('screen-id-display').textContent =
+        (state.storeName ? state.storeName + ' · ' : '') + 'Pantalla: ' + state.screenId;
+    }
 
     /* ==========================================================
        RELOJ Y FECHA
@@ -952,8 +1026,8 @@
        FIREBASE LISTENERS
        ========================================================== */
     function listenToFirebase() {
-      // Escuchar contenido global
-      var contentRef = db.ref('screens/' + state.screenId + '/content');
+      // Escuchar contenido de la pantalla dentro de su punto de venta
+      var contentRef = db.ref(StoreSession.path(state.storeId, 'screens', state.screenId, 'content'));
 
       contentRef.on('value', function(snapshot) {
         var data = snapshot.val();
@@ -964,8 +1038,8 @@
         console.error('Error Firebase:', error);
       });
 
-      // Escuchar configuración global
-      var configRef = db.ref('screens/' + state.screenId + '/config');
+      // Escuchar configuración de la pantalla
+      var configRef = db.ref(StoreSession.path(state.storeId, 'screens', state.screenId, 'config'));
 
       configRef.on('value', function(snapshot) {
         var config = snapshot.val();
@@ -1291,16 +1365,23 @@
     /* ==========================================================
        CACHÉ LOCAL (localStorage)
        ========================================================== */
+    // La clave incluye el local: dos locales pueden tener una pantalla 'default'
+    function cacheKey() {
+      return state.storeId + '_' + state.screenId;
+    }
+
     function saveToCache(data) {
+      if (!state.storeId) return;
       try {
-        localStorage.setItem('signtv_cache_' + state.screenId, JSON.stringify(data));
-        localStorage.setItem('signtv_cache_time_' + state.screenId, Date.now().toString());
+        localStorage.setItem('signtv_cache_' + cacheKey(), JSON.stringify(data));
+        localStorage.setItem('signtv_cache_time_' + cacheKey(), Date.now().toString());
       } catch (e) { /* silenciar errores de cuota */ }
     }
 
     function loadFromCache() {
+      if (!state.storeId) return;
       try {
-        var cached = localStorage.getItem('signtv_cache_' + state.screenId);
+        var cached = localStorage.getItem('signtv_cache_' + cacheKey());
         if (cached) {
           var data = JSON.parse(cached);
           handleContentUpdate(data);
@@ -1440,9 +1521,30 @@
       var items = menu.querySelectorAll('.menu-item');
       items.forEach(function(el) { el.remove(); });
 
-      db.ref('screens').once('value', function(snapshot) {
-        var data = snapshot.val();
-        if (!data) return;
+      if (!state.storeId) return;
+
+      // Con acceso a varios locales, primero la opcion de cambiar de local
+      var ctx = state.storeCtx;
+      if (ctx && ctx.stores.length > 1) {
+        var storeItem = document.createElement('div');
+        storeItem.className = 'menu-item';
+        storeItem.innerHTML = '<span class="dot"></span>Cambiar punto de venta';
+        storeItem.addEventListener('click', function() {
+          closeScreenMenu();
+          StoreSession.showPicker({
+            eyebrow: 'Cartelera Digital',
+            stores: ctx.stores,
+            current: state.storeId,
+            onPick: function(id) { if (id !== state.storeId) switchStore(id); },
+            onLogout: logout
+          });
+        });
+        menu.appendChild(storeItem);
+      }
+
+      db.ref(StoreSession.path(state.storeId, 'screens')).once('value', function(snapshot) {
+        var data = snapshot.val() || {};
+        if (!data['default']) data['default'] = true;
 
         Object.keys(data).sort().forEach(function(screenId) {
           var item = document.createElement('div');

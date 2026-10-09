@@ -337,6 +337,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Puntos de venta: el local sale de la cuenta logueada (la app LED lo empaqueta) -->
+  <script src="store-session.js"></script>
 
   <script>
     /* ==========================================================
@@ -371,6 +373,9 @@
     const params = new URLSearchParams(window.location.search);
 
     const state = {
+      storeId: null,      // punto de venta, resuelto desde la cuenta
+      storeName: '',
+      storeCtx: null,
       screenId: params.get('s') || 'default',
       testMode: params.get('test') === '1',
       debugMode: params.get('debug') === '1',
@@ -482,6 +487,7 @@
       el.style.display = 'block';
       el.style.left = (LED_WIDTH / dpr + 16) + 'px';
       el.textContent =
+        'Punto de venta: ' + (state.storeName || state.storeId || '-') + '\n' +
         'Pantalla: ' + state.screenId + '\n' +
         'devicePixelRatio: ' + dpr + '\n' +
         'Ventana CSS: ' + window.innerWidth + '×' + window.innerHeight + '\n' +
@@ -555,15 +561,22 @@
     /* ==========================================================
        CACHÉ LOCAL (localStorage)
        ========================================================== */
+    // La clave incluye el local: dos locales pueden tener una pantalla 'default'
+    function cacheKey() {
+      return 'signtv_led_cache_' + state.storeId + '_' + state.screenId;
+    }
+
     function saveToCache(data) {
+      if (!state.storeId) return;
       try {
-        localStorage.setItem('signtv_led_cache_' + state.screenId, JSON.stringify(data || {}));
+        localStorage.setItem(cacheKey(), JSON.stringify(data || {}));
       } catch (e) { /* silenciar errores de cuota */ }
     }
 
     function loadFromCache() {
+      if (!state.storeId) return;
       try {
-        var cached = localStorage.getItem('signtv_led_cache_' + state.screenId);
+        var cached = localStorage.getItem(cacheKey());
         if (cached) handleLedUpdate(JSON.parse(cached));
       } catch (e) { /* silenciar */ }
     }
@@ -589,16 +602,77 @@
           // El login va primero, en la pantalla donde se abrio el archivo;
           // recien despues se elige el monitor de salida.
           if (!document.fullscreenElement) showDisplayPicker();
-          loadFromCache();
-          db.ref('screens/' + state.screenId + '/led').on('value', function(snapshot) {
-            handleLedUpdate(snapshot.val());
-          }, function(error) {
-            console.error('Error Firebase:', error);
+
+          // Arranque inmediato con el ultimo local de esta cuenta: sin red,
+          // la caché de ese local se dibuja igual
+          var recalled = StoreSession.recall(user.uid);
+          if (recalled) startStore(recalled, '');
+
+          StoreSession.resolve(db, user).then(function(ctx) {
+            state.storeCtx = ctx;
+            if (!ctx.stores.length) {
+              StoreSession.forget(user.uid);
+              StoreSession.showGate({
+                eyebrow: 'Salida LED',
+                title: 'Cuenta sin punto de venta',
+                message: 'Esta cuenta todavía no tiene un local asignado. Pide al administrador que la habilite desde "Accesos" en el panel.',
+                email: user.email,
+                uid: user.uid,
+                onLogout: logout
+              });
+              return;
+            }
+            var chosen = StoreSession.pick(ctx, params.get('pv'));
+            if (!chosen) {
+              if (state.storeId) return switchStore(null);
+              StoreSession.showPicker({ eyebrow: 'Salida LED', stores: ctx.stores, onPick: function(id) { switchStore(id); }, onLogout: logout });
+              return;
+            }
+            if (state.storeId && state.storeId !== chosen) return switchStore(chosen);
+            var store = StoreSession.findStore(ctx, chosen);
+            startStore(chosen, store ? store.name : '');
+          }).catch(function(error) {
+            console.error('Error al resolver el punto de venta:', error);
           });
         } else {
           document.getElementById('login-screen').classList.remove('hidden');
         }
       });
+    }
+
+    /* ==========================================================
+       PUNTO DE VENTA
+       Se arranca una sola vez por carga; cambiar de local recarga
+       la pagina para no arrastrar pares ni listeners del anterior.
+       ========================================================== */
+    function startStore(storeId, storeName) {
+      if (storeName) state.storeName = storeName;
+      if (state.storeId === storeId) { updateDebug(); return; }
+      state.storeId = storeId;
+      StoreSession.remember(auth.currentUser.uid, storeId);
+      loadFromCache();
+      db.ref(StoreSession.path(storeId, 'screens', state.screenId, 'led')).on('value', function(snapshot) {
+        handleLedUpdate(snapshot.val());
+      }, function(error) {
+        console.error('Error Firebase:', error);
+      });
+      updateDebug();
+    }
+
+    // Cerrar sesion desde los overlays de punto de venta: se vuelve al login
+    function logout() {
+      auth.signOut().then(function() { location.reload(); });
+    }
+
+    // id null: volver a preguntar. Se quita pv= de la URL para que no gane
+    // sobre la eleccion recien hecha.
+    function switchStore(storeId) {
+      var uid = auth.currentUser.uid;
+      if (storeId) StoreSession.remember(uid, storeId);
+      else StoreSession.forget(uid);
+      var url = new URL(window.location.href);
+      url.searchParams.delete('pv');
+      window.location.href = url.toString();
     }
 
     document.getElementById('login-btn').addEventListener('click', doLogin);
@@ -843,7 +917,7 @@
 
     document.addEventListener('dblclick', function(e) {
       if (state.testMode || e.target.closest('#login-screen') || e.target.closest('#screen-menu') ||
-          e.target.closest('#display-picker')) return;
+          e.target.closest('#display-picker') || e.target.closest('.hp-store-overlay')) return;
       var dpr = window.devicePixelRatio || 1;
       if (e.clientX * dpr < LED_WIDTH && e.clientY * dpr < LED_HEIGHT) return;
       openScreenMenu();
@@ -852,10 +926,30 @@
     function openScreenMenu() {
       var menu = document.getElementById('screen-menu');
       menu.querySelectorAll('.menu-item').forEach(function(el) { el.remove(); });
+      if (!state.storeId) return;
 
-      db.ref('screens').once('value', function(snapshot) {
-        var data = snapshot.val();
-        if (!data) return;
+      // Con acceso a varios locales, primero la opcion de cambiar de local
+      var ctx = state.storeCtx;
+      if (ctx && ctx.stores.length > 1) {
+        var storeItem = document.createElement('div');
+        storeItem.className = 'menu-item';
+        storeItem.textContent = 'Cambiar punto de venta';
+        storeItem.addEventListener('click', function() {
+          closeScreenMenu();
+          StoreSession.showPicker({
+            eyebrow: 'Salida LED',
+            stores: ctx.stores,
+            current: state.storeId,
+            onPick: function(id) { if (id !== state.storeId) switchStore(id); },
+            onLogout: logout
+          });
+        });
+        menu.appendChild(storeItem);
+      }
+
+      db.ref(StoreSession.path(state.storeId, 'screens')).once('value', function(snapshot) {
+        var data = snapshot.val() || {};
+        if (!data['default']) data['default'] = true;
 
         Object.keys(data).sort().forEach(function(screenId) {
           var item = document.createElement('div');
